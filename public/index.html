@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CabanaVot — Platforma de vot Cabana Scout</title>
+<meta name="description" content="CabanaVot — creeaza sesiuni de vot, voteaza cu cod, fara cont pentru votanti. Anonim, simplu, modern." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='8' y='26' width='48' height='30' rx='6' fill='%23000080'/%3E%3Cpath d='M6 28 L32 8 L58 28' fill='none' stroke='%230099FF' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='26' y='40' width='12' height='16' rx='2' fill='%23D1C885'/%3E%3C/svg%3E" />
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a class="brand" href="#/" data-nav>
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 64 64" width="38" height="38"><rect x="8" y="26" width="48" height="30" rx="6" fill="#000080"/><path d="M6 28 L32 8 L58 28" fill="none" stroke="#0099FF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><rect x="26" y="40" width="12" height="16" rx="2" fill="#D1C885"/></svg>
+      </span>
+      <span class="brand-text">
+        <strong>CabanaVot</strong>
+        <small>Cabana Scout • Gata oricând!</small>
+      </span>
+    </a>
+    <nav class="nav" id="mainNav">
+      <a href="#/" data-nav>Acasă</a>
+      <a href="#/voteaza" data-nav>Votează cu cod</a>
+      <a href="#/sesiunile-mele" data-nav>Sesiunile mele</a>
+      <a href="#/istoric" data-nav>Istoric</a>
+    </nav>
+    <div class="topbar-actions">
+      <span class="user-badge" id="userBadge" hidden></span>
+      <button class="btn btn-ghost" id="loginBtn">Intră cu email</button>
+      <a class="btn btn-primary" href="#/creeaza" data-nav>+ Creează vot</a>
+      <button class="hamburger" id="hamburger" aria-label="Meniu">☰</button>
+    </div>
+  </div>
+</header>
+
+<main id="app" class="wrap"></main>
+
+<footer class="footer">
+  <div class="wrap footer-inner">
+    <div>
+      <strong>CabanaVot</strong> • platformă de vot anonim pentru Cabana Scout.<br />
+      <span class="muted">Culori oficiale: <i class="dot" style="background:#0099FF"></i> #0099FF • <i class="dot" style="background:#D1C885"></i> #D1C885 • <i class="dot" style="background:#000080"></i> #000080</span>
+    </div>
+    <div class="muted">Voturile sunt anonime. Codul de acces se generează automat.</div>
+  </div>
+</footer>
+
+<!-- Modal login -->
+<div class="modal-backdrop" id="loginModal" hidden>
+  <div class="modal">
+    <h2>Intră cu email</h2>
+    <p class="muted">Ca să <strong>creezi un vot</strong> trebuie să fii logat — așa salvăm istoricul pe contul tău. <strong>Votanții nu au nevoie de cont</strong>, doar de cod.</p>
+    <label>Nume<input id="loginName" type="text" placeholder="ex: Alex Lider" autocomplete="name" /></label>
+    <label>Email<input id="loginEmail" type="email" placeholder="ex: alex@exemplu.ro" autocomplete="email" /></label>
+    <div class="row">
+      <button class="btn btn-primary" id="doLogin">Intră</button>
+      <button class="btn btn-ghost" id="closeLogin">Renunță</button>
+    </div>
+    <p class="tiny muted">Variantă simplă, fără parolă (aleasă de tine). Bună pentru început; pentru voturi oficiale citește README despre varianta cu parolă.</p>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>
