@@ -68,6 +68,15 @@ document.addEventListener('click', (e) => {
   const a = e.target.closest('[data-nav]');
   if (a) { document.querySelectorAll('.nav a').forEach((x) => x.classList.remove('active')); }
 });
+// Extindere/pliere (istoric, lista live) — UN SINGUR handler global.
+// Inainte se adauga un handler nou la fiecare vizita a paginii, iar dublurile
+// faceau ca un click sa deschida si sa inchida instantaneu (parea ca "nu merge").
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-toggle]');
+  if (!btn) return;
+  const body = btn.nextElementSibling;
+  if (body) body.hidden = !body.hidden;
+});
 
 function route() {
   stopPoll();
@@ -161,9 +170,11 @@ async function joinSession(code) {
     await api('/api/join/' + encodeURIComponent(code) + '/register', { method: 'POST', body: JSON.stringify({ voterId }) });
   } catch (e) { area.innerHTML = `<p style="color:var(--danger);font-weight:800">${esc(e.message)}</p>`; return; }
 
+  let lastStatus = null;
   async function refresh(silent) {
     try {
       const s = await api('/api/join/' + encodeURIComponent(code) + '?voterId=' + encodeURIComponent(voterId));
+      lastStatus = s.status;
       if (s.status === 'draft') {
         area.innerHTML = `<div class="quorum-box">Sesiunea <strong>${esc(s.name)}</strong> încă nu e pornită. Stai aproape — administratorul o va porni. ⏳</div>`;
         return;
@@ -190,9 +201,11 @@ async function joinSession(code) {
     } catch (e) { if (!silent) toast(e.message); }
   }
   await refresh();
-  stopPoll();
-  pollTimer = setInterval(() => refresh(true), 2500);
   toast('Te-ai alăturat anonim sesiunii ' + code);
+  if (lastStatus !== 'closed') {
+    stopPoll();
+    pollTimer = setInterval(() => refresh(true), 2500);
+  }
 }
 
 // ---------- Formular creare / editare ----------
@@ -392,13 +405,6 @@ async function renderHistory() {
     const q = e.target.value.toLowerCase();
     document.querySelectorAll('#hList .session').forEach((el) => (el.style.display = el.dataset.name.includes(q) ? '' : 'none'));
   };
-  app.addEventListener('click', toggleHandler);
-  function toggleHandler(e) {
-    const btn = e.target.closest('[data-toggle]');
-    if (!btn || !$('#hList')) return;
-    const body = btn.nextElementSibling;
-    if (body) body.hidden = !body.hidden;
-  }
 }
 
 // ---------- Control live (administrator) ----------
@@ -413,6 +419,15 @@ async function renderControl(id) {
   }
 
   function paint() {
+    // Pastram ce a tastat administratorul in casuta "Adauga vot nou live" —
+    // altfel reimprospatarea automata la 2.5 secunde ii sterge textul din campuri.
+    const keep = {};
+    ['liveTitle', 'liveOpts', 'livePos'].forEach((id) => { const el = $('#' + id); if (el) keep[id] = el.value; });
+    const ae = document.activeElement;
+    const focusId = ae && ae.id ? ae.id : null;
+    const selStart = ae && ae.selectionStart != null ? ae.selectionStart : null;
+    const selEnd = ae && ae.selectionEnd != null ? ae.selectionEnd : null;
+
     const cur = s.currentIndex >= 0 ? s.questions[s.currentIndex] : null;
     app.innerHTML = `
     <section>
@@ -457,6 +472,13 @@ async function renderControl(id) {
         </div>
       </div>
     </section>`;
+    // Restaureaza valorile + focusul, ca sa poti scrie linistit in campuri
+    Object.keys(keep).forEach((id) => { const el = $('#' + id); if (el) el.value = keep[id]; });
+    if (focusId && $('#' + focusId)) {
+      const el = $('#' + focusId);
+      el.focus();
+      try { if (selStart != null) el.setSelectionRange(selStart, selEnd); } catch {}
+    }
     $('#copyCode').onclick = () => { navigator.clipboard.writeText(s.code); toast('Cod copiat'); };
     $('#copyLink').onclick = () => { navigator.clipboard.writeText(location.origin + location.pathname + '#/voteaza?cod=' + s.code); toast('Link copiat'); };
     const ctl = async (body) => { try { s = await api('/api/sessions/' + id + '/control', { method: 'POST', body: JSON.stringify(body) }); paint(); } catch (e) { toast(e.message); } };
@@ -489,26 +511,54 @@ function refreshHeader() {
   if (u) $('#userBadge').textContent = '👤 ' + u.name + ' • ' + u.email;
   $('#loginBtn').textContent = u ? 'Ieși' : 'Intră cu email';
 }
+
+// Modalul de login: folosim SI atributul `hidden` (cu regula [hidden] din CSS)
+// SI `style.display` direct — asa modalul se inchide corect chiar daca browserul
+// are o versiune veche de styles.css in cache.
+function openLoginModal() {
+  const m = $('#loginModal');
+  m.hidden = false; m.style.display = 'flex';
+  setTimeout(() => { const el = $('#loginName'); if (el) el.focus(); }, 0);
+}
+function closeLoginModal() {
+  const m = $('#loginModal');
+  m.hidden = true; m.style.display = 'none';
+}
+
 $('#loginBtn').onclick = () => {
   if (getUser()) {
     localStorage.removeItem('cabanavot_token');
     localStorage.removeItem('cabanavot_user');
     refreshHeader(); toast('Ai ieșit.'); route(); return;
   }
-  $('#loginModal').hidden = false;
+  openLoginModal();
 };
-$('#closeLogin').onclick = () => ($('#loginModal').hidden = true);
+$('#closeLogin').onclick = closeLoginModal;
+// Click pe fundalul întunecat (în afara căsuței) închide modalul
+$('#loginModal').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeLoginModal(); });
+// Enter în oricare câmp = apasă pe „Intră”
+['loginName', 'loginEmail'].forEach((id) => {
+  $('#' + id).addEventListener('keydown', (e) => { if (e.key === 'Enter') $('#doLogin').click(); });
+});
 $('#doLogin').onclick = async () => {
+  const btn = $('#doLogin');
+  const email = $('#loginEmail').value.trim();
+  const name = $('#loginName').value.trim();
+  if (!email || !email.includes('@')) return toast('Scrie o adresă de email validă.');
+  if (!name) return toast('Scrie și numele tău.');
+  btn.disabled = true; const label = btn.textContent; btn.textContent = 'Se conectează…';
   try {
-    const r = await api('/api/auth/login', { method: 'POST', body: JSON.stringify({ email: $('#loginEmail').value, name: $('#loginName').value }) });
+    const r = await api('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, name }) });
     localStorage.setItem('cabanavot_token', r.token);
     localStorage.setItem('cabanavot_user', JSON.stringify(r.user));
-    $('#loginModal').hidden = true;
+    closeLoginModal();
     refreshHeader(); toast('Bun venit, ' + r.user.name + '!');
     route();
   } catch (e) { toast(e.message); }
+  finally { btn.disabled = false; btn.textContent = label; }
 };
 $('#hamburger').onclick = () => $('#mainNav').classList.toggle('open');
 
 refreshHeader();
+closeLoginModal(); // plasă de siguranță: modalul pornește închis chiar dacă CSS-ul e încă în cache
 route();

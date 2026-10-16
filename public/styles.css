@@ -18,6 +18,10 @@
   --shadow:0 8px 28px rgba(0,0,128,.10);
 }
 *{box-sizing:border-box}
+/* FIX IMPORTANT: fara regula asta, elementele cu atributul `hidden` care au si
+   display:flex in CSS (ex: modalul de login) rămân vizibile pe ecran si blocheaza tot site-ul.
+   Regula de mai jos se asigura ca `hidden` ascunde mereu elementul. */
+[hidden]{display:none!important}
 html,body{margin:0;padding:0}
 body{
   font-family:"Red Hat Display",Helvetica,Arial,sans-serif;
@@ -38,6 +42,8 @@ a{color:var(--mov)}
 .topbar{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:3px solid var(--bej)}
 .topbar-inner{display:flex;align-items:center;gap:16px;padding:10px 18px}
 .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text)}
+.brand-mark{display:flex;align-items:center;justify-content:center}
+.brand-mark img{width:44px;height:44px;display:block;filter:drop-shadow(0 2px 5px rgba(0,0,128,.20))}
 .brand-text{display:flex;flex-direction:column;line-height:1.05}
 .brand-text strong{font-size:1.35rem;letter-spacing:.2px;color:var(--mov)}
 .brand-text small{color:var(--muted);font-weight:600;letter-spacing:.4px}
@@ -135,6 +141,8 @@ label{display:flex;flex-direction:column;gap:6px;font-weight:700;margin:10px 0}
 .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--mov);color:#fff;padding:12px 18px;border-radius:999px;font-weight:700;z-index:60;box-shadow:var(--shadow)}
 .footer{margin:34px 0 0;border-top:3px solid var(--bej);background:#fff}
 .footer-inner{display:flex;justify-content:space-between;gap:14px;padding:20px 18px;flex-wrap:wrap}
+.footer-brand{display:flex;align-items:center;gap:12px}
+.footer-brand img{display:block}
 .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}
 .step{background:#fff;border-radius:14px;padding:14px;border:1.5px solid #ECEAD6}
 .step b{color:var(--mov)}

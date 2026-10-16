@@ -2,7 +2,27 @@
 
 Platformă de vot anonim, live, model inspirat de voxvote.com,
 cu design după Manualul de identitate vizuală Cabana Scout v3.0
-(albastru `#0099FF`, bej `#D1C885`, mov închis `#000080`, font Red Hat Display).
+(albastru `#0099FF`, bej `#D1C885`, mov închis `#000080`, font Red Hat Display,
+logo oficial extras din manual în `public/logo.png`).
+
+## Actualizări v1.1 (17 oct 2026) — ce s-a reparat
+
+- 🐞 **Reparat bug-ul mare de la login**: modalul „Intră cu email" rămânea lipit pe ecran
+  și bloca tot site-ul (butoanele „Intră" și „Renunță" păreau că nu fac nimic).
+  Cauza: regula CSS `display:flex` de pe fundalul modalului anula atributul `hidden`.
+  Acum există regula `[hidden]{display:none!important}` + o plasă de siguranță în JavaScript,
+  deci modalul se închide corect chiar dacă browserul are CSS vechi în cache.
+- 🐞 **Reparat bug-ul de la Istoric**: dacă vizitai pagina de două ori, sesiunile nu se mai
+  extindeau la click (se adăuga un handler de click duplicat la fiecare vizită). Acum e un
+  singur handler global.
+- 🐞 Reparat: paginile de rezultate nu mai fac interogări inutile după închiderea sesiunii.
+- ✨ Login mai comod: **Enter** în oricare câmp trimite formularul, click pe fundalul întunecat
+  închide modalul, butonul arată „Se conectează…" cât timp se face cererea.
+- ✨ Panoul de control live nu-ți mai șterge textul din câmpuri la reîmprospătarea automată.
+- 🎨 **Logo-ul oficial Cabana Scout** (extras din manualul de identitate v3.0) e acum în header,
+  în subsol și ca favicon (`public/logo.png`).
+- 🔧 Versionare `styles.css?v=2` / `app.js?v=2` ca browserele să ia imediat fișierele noi după
+  redeploy (nu mai rămân în cache).
 
 ## Ce face (conform indicațiilor tale)
 
@@ -20,7 +40,7 @@ cu design după Manualul de identitate vizuală Cabana Scout v3.0
 
 Gândește-te la aplicație ca la o cabană cu două părți:
 
-1. **`public/` = partea vizibilă (frontend)** — ce vede lumea în browser: `index.html` (scheletul), `styles.css` (culorile frumoase), `app.js` (butoanele, votul live).
+1. **`public/` = partea vizibilă (frontend)** — ce vede lumea în browser: `index.html` (scheletul), `styles.css` (culorile frumoase), `app.js` (butoanele, votul live), `logo.png` (logo-ul oficial din manualul de identitate).
 2. **`server.js` = creierul (backend)** — ține minte utilizatorii, sesiunile și voturile, dă codurile, verifică că doar creatorul editează. Salvează totul în **`db.json`** (un fișier text care ține loc de bază de date simplă).
 3. **`package.json`** = lista de „unelte” necesare (Express + CORS). E ca o listă de cumpărături pentru server.
 
@@ -52,7 +72,25 @@ Deschide apoi http://localhost:3000
 
 Alternativ: Railway.app, Fly.io sau un VPS — pașii sunt aceiași (Build `npm install`, Start `npm start`, portul îl alege platforma prin variabila `PORT`).
 
-> Notă: pe planul gratuit Render, serverul „adoarme" după inactivitate și pornește mai greu la primul acces (~30s). Pentru AG-uri importante, ia planul Starter (~7$/lună) sau ține un tab deschis înainte de vot.
+### Cum publici o actualizare (redeploy) după ce ai modificat fișiere
+
+1. Intră pe GitHub în repository-ul `cabanavot` → **Add file → Upload files**.
+2. Trage fișierele modificate (păstrează structura folderelor!):
+   - `public/index.html`, `public/styles.css`, `public/app.js`, `public/logo.png` (dacă s-a schimbat logo-ul)
+   - `README.md` (opțional)
+3. Apasă **Commit changes**. Render detectează automat commit-ul și începe redeploy-ul (~1-2 minute).
+4. Când scrie „Live" în Render, deschide site-ul cu un **refresh complet** (Ctrl+F5 pe Windows,
+   sau închide/reia tab-ul pe telefon) — fișierele au `?v=2` în nume, deci cache-ul nu mai e o problemă.
+
+> ⚠️ **Foarte important pe planul gratuit**: pe Render, la fiecare **redeploy sau repornire**,
+> fișierul `db.json` (utilizatori, sesiuni, voturi) se poate **reseta** — nu te baza pe el pentru
+> un vot oficial. **Nu face redeploy în timpul unui vot real!** Cât timp serviciul doar „adoarme",
+> datele de obicei rămân, dar pentru siguranță descarcă `db.json` (din tabul Shell/Logs al
+> serviciului sau din repository după cum îl configurezi) înainte de evenimente mari.
+> Pentru AG-uri importante: planul Starter (~7$/lună) + persistent disk rezolvă ambele probleme
+> (datele nu se mai resetează, serverul nu mai adoarme).
+
+> Notă: pe planul gratuit Render, serverul „adoarme" după inactivitate și pornește mai greu la primul acces (~30s). Ține un tab deschis cu ~5 minute înainte de vot.
 
 ## Fluxul de vot la un eveniment real
 
