@@ -44,10 +44,10 @@ function statusPill(s) {
 }
 
 function quorumBox(s) {
-  if (!s.quorumEnabled) return '<p class="muted tiny">Cvorum 2/3 dezactivat pentru această sesiune.</p>';
+  if (!s.quorumEnabled) return ''; // daca nu e pornit, nu scriem nimic despre el
   const need = s.quorumNeeded ?? Math.ceil((s.totalEligible * 2) / 3);
   const ok = s.registered >= need;
-  return `<div class="quorum-box">Cvorum 2/3 activ: din <strong>${s.totalEligible || '?'} persoane cu drept de vot</strong> trebuie să fie înregistrate <strong>${need}</strong>. Momentan înregistrate: <strong>${s.registered}</strong> — ${ok ? '✅ cvorum atins (indicativ)' : '⏳ cvorum neatins (indicativ, votul continuă oricum)'}.</div>`;
+  return `<div class="quorum-box">Cvorumul este <strong>${need} persoane</strong> (2/3 din ${s.totalEligible || '?'} cu drept de vot). Înregistrate: <strong>${s.registered}</strong> — ${ok ? '✅ cvorum atins (indicativ)' : '⏳ cvorum neatins (indicativ, votul continuă oricum)'}.</div>`;
 }
 
 function barsHTML(question) {
@@ -59,7 +59,7 @@ function barsHTML(question) {
       <span class="bar-votes">${o.votes} voturi • ${pct}%</span>
       <div class="bar"><div style="width:${pct}%;background:${esc(o.color || '#0099FF')}"></div></div>
     </div>`;
-  }).join('') + `<p class="tiny muted">Total voturi pe întrebare: <strong>${total}</strong>. Bara fiecărei variante e colorată cu culoarea aleasă de administrator.</p>`;
+  }).join('');
 }
 
 // ---------- Router ----------
@@ -81,14 +81,22 @@ document.addEventListener('click', (e) => {
 function route() {
   stopPoll();
   const h = location.hash || '#/';
-  document.querySelectorAll('#mainNav a').forEach((a) => a.classList.toggle('active', a.getAttribute('href') === h.split('?')[0]));
+  // Butonul "+ Creează vot" din bara de sus dispare cand esti deja in formularul de vot.
+  const createBtn = $('#createBtn');
+  if (createBtn) createBtn.hidden = h.startsWith('#/creeaza') || h.startsWith('#/editeaza');
+  const activeHref = h.startsWith('#/bine-ai-venit') || h.startsWith('#/platforma') ? '#/' : h.split('?')[0];
+  document.querySelectorAll('#mainNav a').forEach((a) => a.classList.toggle('active', a.getAttribute('href') === activeHref));
+  if (h.startsWith('#/bine-ai-venit')) return renderWelcome();
+  if (h.startsWith('#/platforma')) return renderHome();
   if (h.startsWith('#/voteaza')) return renderJoin();
   if (h.startsWith('#/creeaza')) return renderCreate();
   if (h.startsWith('#/editeaza/')) return renderEdit(h.split('/')[2]);
   if (h.startsWith('#/controleaza/')) return renderControl(h.split('/')[2]);
   if (h.startsWith('#/sesiunile-mele')) return renderMine();
   if (h.startsWith('#/istoric')) return renderHistory();
-  return renderHome();
+  // Pagina de start: „Bine ai venit la AG" apare doar PRIMA DATA cand intri pe site
+  // (dupa ce ai vazut-o o data, Acasa duce la pagina normala).
+  return getUser() && !localStorage.getItem('cabanavot_welcome_seen') ? renderWelcome() : renderHome();
 }
 
 // ---------- Acasa ----------
@@ -120,15 +128,15 @@ async function renderHome() {
         <h3>De ce CabanaVot?</h3>
         <div>🕵️ <strong>Anonim</strong> — nu salvăm cine ce a votat.</div>
         <div>📊 <strong>Istoric complet</strong> — toate sesiunile rămân în Istoric.</div>
-        <div>⚖️ <strong>Cvorum 2/3 opțional</strong> — doar indicativ, nu blochează votul.</div>
+        <div>♾️ <strong>Sesiuni de vot nelimitate</strong> — creezi câte vrei.</div>
       </div>
     </div>
   </section>
   <section class="card">
     <h2>Cum funcționează? (3 pași)</h2>
     <div class="steps">
-      <div class="step"><b>1. Creezi sesiunea</b><br/>Intri cu emailul, scrii numele sesiunii, adaugi întrebări + variante colorate. Primești un cod automat.</div>
-      <div class="step"><b>2. Pornești live</b><br/>Din „Controlează” apeși Start. Proiectezi codul. Votanții intră de pe telefon și votează întrebarea curentă.</div>
+      <div class="step"><b>1. Creezi sesiunea</b><br/>Creezi o sesiune, adaugi întrebări și gata AG-ul într-o oră.</div>
+      <div class="step"><b>2. Pornești live</b><br/>Proiectezi codul. Votanții intră de pe telefon și votează întrebarea curentă.</div>
       <div class="step"><b>3. Vezi rezultate + istoric</b><br/>Bare colorate live, cvorum indicativ, iar la final totul rămâne în Istoric, extensibil pe sesiuni.</div>
     </div>
   </section>
@@ -138,6 +146,19 @@ async function renderHome() {
     if (!c) return toast('Scrie codul primit de la administrator.');
     location.hash = '#/voteaza?cod=' + encodeURIComponent(c);
   };
+}
+
+// ---------- Pagina de pornire (prima pagina dupa login — doar prima data) ----------
+function renderWelcome() {
+  localStorage.setItem('cabanavot_welcome_seen', '1');
+  app.innerHTML = `
+  <section class="welcome">
+    <div class="welcome-card">
+      <img src="logo.png" alt="Logo Cabana Scout" width="92" height="92" />
+      <h1>Bine ai venit la AG</h1>
+      <a class="btn btn-primary" href="#/platforma" data-nav>Continuă →</a>
+    </div>
+  </section>`;
 }
 
 function sessionCardMini(s) {
@@ -185,18 +206,24 @@ async function joinSession(code) {
       }
       const c = s.current;
       if (!c) { area.innerHTML = '<p class="muted">Nu există întrebare activă momentan.</p>'; return; }
+      const voted = c.myVote != null;
       area.innerHTML = `
         <h3>${esc(s.name)} <span class="tiny muted">• întrebarea ${(s.currentIndex ?? 0) + 1} din ${s.questionsCount}</span></h3>
         ${s.quorumEnabled ? `<p class="tiny muted">Cvorum 2/3: înregistrați ${s.registered} din necesarul ${s.quorumNeeded} (indicativ).</p>` : ''}
         <p class="current-title">${esc(c.title)}</p>
-        ${c.options.map((o, i) => `<button class="vote-btn ${c.myVote === i ? 'selected' : ''}" data-i="${i}"><span class="dot" style="background:${esc(o.color)}"></span> ${esc(o.text)} ${c.myVote === i ? '✓ (votul tău)' : ''}</button>`).join('')}
-        <p class="tiny muted">${c.myVote != null ? 'Poți schimba votul cât timp întrebarea e activă.' : 'Atinge o variantă ca să votezi. Poți schimba votul cât timp întrebarea e activă.'} • Total voturi: <strong id="vTotal">${c.total}</strong></p>`;
+        ${c.options.map((o, i) => `<button class="vote-btn ${c.myVote === i ? 'selected' : ''}" data-i="${i}" ${voted ? 'disabled' : ''}><span class="dot" style="background:${esc(o.color)}"></span> ${esc(o.text)} ${c.myVote === i ? '✓ (votul tău)' : ''}</button>`).join('')}
+        <p class="tiny muted">${voted
+          ? 'Votul tău a fost înregistrat. Acum așteaptă următoarea întrebare — votul nu mai poate fi schimbat.'
+          : 'Atinge o variantă ca să votezi. După ce votezi, votul rămâne înregistrat și nu mai poate fi schimbat.'} • Total voturi: <strong id="vTotal">${c.total}</strong></p>`;
       area.querySelectorAll('.vote-btn').forEach((b) => (b.onclick = async () => {
+        if (b.disabled) return;
+        // blocam butoanele imediat, ca un dublu-click sa nu trimita doua voturi
+        area.querySelectorAll('.vote-btn').forEach((x) => (x.disabled = true));
         try {
           await api('/api/vote', { method: 'POST', body: JSON.stringify({ code, questionId: c.id, optionIndex: Number(b.dataset.i), voterId }) });
-          toast('Vot înregistrat anonim ✓');
-          refresh(true);
+          toast('Vot înregistrat anonim ✓ Așteaptă următoarea întrebare.');
         } catch (e) { toast(e.message); }
+        refresh(true);
       }));
     } catch (e) { if (!silent) toast(e.message); }
   }
@@ -212,14 +239,15 @@ async function joinSession(code) {
 function questionBlock(q = { title: '', options: [{ text: '', color: PALETTE[0] }, { text: '', color: PALETTE[1] }] }, qi = 0) {
   return `<div class="qblock" data-q="${qi}">
     <div class="qhead">
+      <span class="drag-handle" title="Ține apăsat și trage ca să muți întrebarea">⠿</span>
       <strong>Întrebarea ${qi + 1}</strong>
-      <input type="text" class="qtitle" placeholder="ex: Aprobați raportul de activitate?" value="${esc(q.title)}" />
+      <input type="text" class="qtitle" placeholder="ex: Aprobați raportul de activitate?" value="${esc(q.title)}" autocomplete="off" data-lpignore="true" data-1p-ignore data-form-type="other" />
       <button type="button" class="icon-btn del-q" title="Șterge întrebarea">✕</button>
     </div>
     <div class="opts">${q.options.map((o) => `
       <div class="opt-row">
         <input type="color" class="ocolor" value="${esc(o.color || '#0099FF')}" title="Culoarea barei de rezultate" />
-        <input type="text" class="otext" placeholder="Variantă de răspuns (ex: DA)" value="${esc(o.text)}" />
+        <input type="text" class="otext" placeholder="Variantă de răspuns (ex: DA)" value="${esc(o.text)}" autocomplete="off" data-lpignore="true" data-1p-ignore data-form-type="other" />
         <button type="button" class="icon-btn del-opt" title="Șterge varianta">−</button>
       </div>`).join('')}</div>
     <button type="button" class="btn btn-ghost btn-small add-opt">+ Adaugă variantă</button>
@@ -241,14 +269,14 @@ function collectForm() {
   return { name, quorumEnabled, totalEligible, questions };
 }
 
-function wireForm(areaId) {
+function wireForm(areaId, onReorder) {
   const area = $(areaId);
   area.addEventListener('click', (e) => {
     const qb = e.target.closest('.qblock');
     if (e.target.closest('.add-opt') && qb) {
       const opts = qb.querySelector('.opts');
       const n = opts.children.length;
-      opts.insertAdjacentHTML('beforeend', `<div class="opt-row"><input type="color" class="ocolor" value="${PALETTE[n % PALETTE.length]}" /><input type="text" class="otext" placeholder="Variantă nouă" /><button type="button" class="icon-btn del-opt">−</button></div>`);
+      opts.insertAdjacentHTML('beforeend', `<div class="opt-row"><input type="color" class="ocolor" value="${PALETTE[n % PALETTE.length]}" /><input type="text" class="otext" placeholder="Variantă nouă" autocomplete="off" data-lpignore="true" data-1p-ignore data-form-type="other" /><button type="button" class="icon-btn del-opt">−</button></div>`);
     }
     if (e.target.closest('.del-opt') && qb) {
       if (qb.querySelectorAll('.opt-row').length <= 2) return toast('O întrebare trebuie să aibă cel puțin 2 variante.');
@@ -275,6 +303,89 @@ function wireForm(areaId) {
   function updateQuorumHint() {
     const t = Number($('#fTotal').value);
     $('#quorumHint').textContent = t > 0 ? `Vor trebui să fie înregistrate cel puțin ${Math.ceil((t * 2) / 3)} persoane (2/3 din ${t}). E doar o indicație — votul pornește oricum.` : 'Scrie numărul total de persoane cu drept de vot.';
+  }
+
+  // ---------- Sageata sus/jos = muta cursorul in casuta urmatoare / de mai sus ----------
+  // Exemplu: scrii titlul intrebarii 1, apesi sageata jos si mergi direct la prima varianta.
+  const card = area.closest('.card') || area;
+  card.addEventListener('keydown', (e) => {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    const t = e.target;
+    if (!t || t.tagName !== 'INPUT' || t.type !== 'text') return;
+    const inputs = [...card.querySelectorAll('input[type=text]')].filter((el) => !el.disabled && el.offsetParent !== null);
+    const next = e.key === 'ArrowDown' ? inputs[inputs.indexOf(t) + 1] : inputs[inputs.indexOf(t) - 1];
+    if (next) { e.preventDefault(); next.focus(); }
+  });
+
+  // ---------- Mutarea intrebarilor: tine apasat si trage (merge si pe telefon) ----------
+  // Tine apasat pe manerul ⠿ din capul intrebarii (sau pe zona goala a intrebarii),
+  // misca degetul/pointerul peste alta intrebare si elibereaza ca sa o muti.
+  let drag = null; // intrebarea care e trasa acum
+  let pre = null;  // ascultatorii timer-ului de dinainte de „pornire"
+  const blockScroll = (ev) => ev.preventDefault(); // pe telefon: nu lasa pagina sa deruleze cand tragi
+
+  area.addEventListener('pointerdown', (e) => {
+    if (e.button != null && e.button > 0) return; // doar click stanga
+    const qb = e.target.closest('.qblock');
+    if (!qb || !area.contains(qb)) return;
+    const onHandle = !!e.target.closest('.drag-handle');
+    if (!onHandle && e.target.closest('input,select,textarea,button,label')) return; // nu intru peste scris/butoane
+    const startX = e.clientX, startY = e.clientY, pid = e.pointerId;
+    const timer = setTimeout(() => { cleanupPre(); beginDrag(qb, pid); }, onHandle ? 0 : (e.pointerType === 'mouse' ? 160 : 420));
+    const onMove = (ev) => { if (Math.hypot(ev.clientX - startX, ev.clientY - startY) > 10) cleanupPre(); }; // se misca = deruleaza/selecteaza, nu trage
+    const onUp = () => cleanupPre();
+    function cleanupPre() {
+      clearTimeout(timer);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+      pre = null;
+    }
+    pre = cleanupPre;
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+  });
+
+  function beginDrag(qb, pid) {
+    drag = { qb, pid, order: [...area.querySelectorAll('.qblock')] };
+    qb.classList.add('dragging');
+    document.body.classList.add('dragging-active');
+    document.addEventListener('touchmove', blockScroll, { passive: false });
+    window.addEventListener('pointermove', onDragMove);
+    window.addEventListener('pointerup', endDrag);
+    window.addEventListener('pointercancel', endDrag);
+    try { qb.setPointerCapture(pid); } catch {}
+  }
+  function onDragMove(ev) {
+    if (!drag || ev.pointerId !== drag.pid) return;
+    const x = ev.clientX, y = ev.clientY;
+    for (const t of area.querySelectorAll('.qblock')) {
+      if (t === drag.qb) continue;
+      const r = t.getBoundingClientRect();
+      if (x < r.left || x > r.right || y < r.top || y > r.bottom) continue;
+      const before = y < r.top + r.height / 2;
+      if (before && drag.qb.nextElementSibling !== t) t.parentNode.insertBefore(drag.qb, t);
+      else if (!before && t.nextElementSibling !== drag.qb) t.parentNode.insertBefore(drag.qb, t.nextElementSibling);
+      break;
+    }
+  }
+  function endDrag(ev) {
+    if (!drag || (ev && ev.pointerId !== undefined && ev.pointerId !== drag.pid)) return;
+    drag.qb.classList.remove('dragging');
+    document.body.classList.remove('dragging-active');
+    document.removeEventListener('touchmove', blockScroll, { passive: false });
+    window.removeEventListener('pointermove', onDragMove);
+    window.removeEventListener('pointerup', endDrag);
+    window.removeEventListener('pointercancel', endDrag);
+    // am schimbat ordinea? daca nu, nu facem nimic (un simplu click pe maner nu salveaza degeaba)
+    const now = [...area.querySelectorAll('.qblock')];
+    const changed = now.length !== drag.order.length || now.some((el, i) => el !== drag.order[i]);
+    drag = null;
+    if (changed) {
+      renumber();
+      if (typeof onReorder === 'function') onReorder(); // la editare: salvam noua ordine
+    }
   }
 }
 
@@ -320,14 +431,18 @@ async function renderEdit(id) {
     <div class="checkline"><input id="fQuorum" type="checkbox" ${s.quorumEnabled ? 'checked' : ''} /><div><strong>Am nevoie de cvorum 2/3</strong></div></div>
     <div id="quorumFields" ${s.quorumEnabled ? '' : 'hidden'}><label>Persoane cu drept de vot<input id="fTotal" type="number" min="1" value="${esc(s.totalEligible || '')}" /></label><span class="quorum-result" id="quorumHint"></span></div>
     <div id="qList">${s.questions.map((q, i) => `<div class="qblock" data-q="${i}" data-qid="${q.id}">
-      <div class="qhead"><strong>Întrebarea ${i + 1}</strong><input type="text" class="qtitle" value="${esc(q.title)}" /><button type="button" class="icon-btn del-q">✕</button></div>
-      <div class="opts">${q.options.map((o) => `<div class="opt-row"><input type="color" class="ocolor" value="${esc(o.color)}" /><input type="text" class="otext" value="${esc(o.text)}" /><button type="button" class="icon-btn del-opt">−</button></div>`).join('')}</div>
+      <div class="qhead"><span class="drag-handle" title="Ține apăsat și trage ca să muți întrebarea">⠿</span><strong>Întrebarea ${i + 1}</strong><input type="text" class="qtitle" value="${esc(q.title)}" autocomplete="off" data-lpignore="true" data-1p-ignore data-form-type="other" /><button type="button" class="icon-btn del-q">✕</button></div>
+      <div class="opts">${q.options.map((o) => `<div class="opt-row"><input type="color" class="ocolor" value="${esc(o.color)}" /><input type="text" class="otext" value="${esc(o.text)}" autocomplete="off" data-lpignore="true" data-1p-ignore data-form-type="other" /><button type="button" class="icon-btn del-opt">−</button></div>`).join('')}</div>
       <button type="button" class="btn btn-ghost btn-small add-opt">+ Adaugă variantă</button></div>`).join('')}</div>
-    <div class="row"><button class="btn btn-ghost btn-small" id="addQ">+ Adaugă întrebare oriunde (la final, apoi o muți cum vrei)</button>
+    <div class="row"><button class="btn btn-ghost btn-small" id="addQ">+ Adaugă întrebare oriunde</button>
     <button class="btn btn-primary" id="saveEdit">Salvează</button>
-    <a class="btn btn-dark" href="#/controleaza/${s.id}" data-nav>Deschide controlul live →</a></div>
+    <a class="btn btn-dark" href="#/controleaza/${s.id}" data-nav>Controlează live →</a></div>
   </section>`;
-  wireForm('#qList');
+  // onReorder: dupa ce muti o intrebare (trage si elibereaza), noua ordine se salveaza imediat.
+  wireForm('#qList', async () => {
+    try { await api('/api/sessions/' + id, { method: 'PUT', body: JSON.stringify(collectForm()) }); toast('Ordine salvată ✓'); }
+    catch (e) { toast(e.message); }
+  });
   $('#saveEdit').onclick = async () => {
     try {
       await api('/api/sessions/' + id, { method: 'PUT', body: JSON.stringify(collectForm()) });
@@ -345,8 +460,12 @@ async function renderMine() {
   }
   let mine = [];
   try { mine = await api('/api/sessions/mine'); } catch (e) { app.innerHTML = `<p>${esc(e.message)}</p>`; return; }
-  app.innerHTML = `<section><h2>Sesiunile mele (${mine.length})</h2>
-  ${mine.length ? mine.map((s) => `
+  // Sesiunile închise nu mai sunt active: nu se mai arată aici, doar în Istoric.
+  const active = mine.filter((s) => s.status !== 'closed');
+  const closedCount = mine.length - active.length;
+  app.innerHTML = `<section><h2>Sesiunile mele</h2>
+  <p class="tiny muted">Aici apar sesiunile active (proiect sau live). Cele închise rămân în <a href="#/istoric" data-nav>Istoric</a>${closedCount ? ` (${closedCount} ${closedCount === 1 ? 'sesiune închisă' : 'sesiuni închise'})` : ''}.</p>
+  ${active.length ? active.map((s) => `
     <div class="session">
       <div class="session-head" style="cursor:default">
         <span class="sname">${esc(s.name)}</span>${statusPill(s.status)}
@@ -364,7 +483,7 @@ async function renderMine() {
           <button class="btn btn-danger btn-small" data-del="${s.id}">Șterge</button>
         </div>
       </div>
-    </div>`).join('') : '<div class="card">N-ai creat încă nicio sesiune. <a href="#/creeaza" data-nav>Creează prima →</a></div>'}
+    </div>`).join('') : '<div class="card">N-ai nicio sesiune activă. <a href="#/creeaza" data-nav>Creează prima →</a></div>'}
   </section>`;
   app.querySelectorAll('[data-copy]').forEach((b) => (b.onclick = () => { navigator.clipboard.writeText(b.dataset.copy); toast('Cod copiat: ' + b.dataset.copy); }));
   app.querySelectorAll('[data-link]').forEach((b) => (b.onclick = () => {
@@ -383,7 +502,7 @@ async function renderHistory() {
   let list = [];
   try { list = await api('/api/sessions'); } catch (e) { app.innerHTML = `<p>${esc(e.message)}</p>`; return; }
   app.innerHTML = `<section>
-    <h2>Istoric — toate sesiunile de vot (${list.length})</h2>
+    <h2>Istoric sesiuni</h2>
     <p class="muted">Apasă pe numele sesiunii ca să extinzi și să vezi ce s-a votat. Apoi apasă pe o întrebare ca să vezi variantele + câte persoane au votat.</p>
     <input id="hSearch" type="text" placeholder="Caută sesiune (ex: AG primăvara 2026)..." />
     <div id="hList" style="margin-top:12px">${list.map(historyItem).join('') || '<div class="card">Nicio sesiune încă.</div>'}</div>
@@ -418,17 +537,20 @@ async function renderControl(id) {
     try { s = await api('/api/sessions/' + id); paint(); } catch {}
   }
 
+  let lastIndex = s.currentIndex; // ca sa stim cand se schimba intrebarea curenta
   function paint() {
-    // Pastram ce a tastat administratorul in casuta "Adauga vot nou live" —
-    // altfel reimprospatarea automata la 2.5 secunde ii sterge textul din campuri.
-    const keep = {};
-    ['liveTitle', 'liveOpts', 'livePos'].forEach((id) => { const el = $('#' + id); if (el) keep[id] = el.value; });
+    // Pastram intrebarile extinse de administrator intre reimprospatarile automate.
+    // (Altfel, la fiecare 2.5 secunde toate <details> se inchideau si pagina "sarea" la loc.)
+    const prevOpen = new Set([...app.querySelectorAll('.tree details[open]')].map((d) => d.dataset.dkey));
+    const firstPaint = !app.querySelector('.tree');
+    if (lastIndex !== s.currentIndex) { prevOpen.add('root'); prevOpen.add('q' + s.currentIndex); lastIndex = s.currentIndex; }
+    const openAttr = (key, fallback) => ((firstPaint ? fallback : prevOpen.has(key)) ? 'open' : '');
+    const scrollY = window.scrollY;
     const ae = document.activeElement;
     const focusId = ae && ae.id ? ae.id : null;
-    const selStart = ae && ae.selectionStart != null ? ae.selectionStart : null;
-    const selEnd = ae && ae.selectionEnd != null ? ae.selectionEnd : null;
 
     const cur = s.currentIndex >= 0 ? s.questions[s.currentIndex] : null;
+    const isLast = s.questions.length > 0 && s.currentIndex === s.questions.length - 1;
     app.innerHTML = `
     <section>
       <div class="row"><a href="#/sesiunile-mele" data-nav>← Sesiunile mele</a></div>
@@ -442,19 +564,17 @@ async function renderControl(id) {
       <div class="live-grid">
         <div class="tree">
           <strong>📋 Toată sesiunea</strong>
-          <p class="tiny muted">La început vezi doar numele. Apasă pe sesiune → întrebări → variante + voturi.</p>
-          <details open><summary>📁 ${esc(s.name)} (${s.questions.length} întrebări)</summary>
+          <p class="tiny muted">Apasă pe o întrebare ca să vezi variantele și câte voturi sunt. Întrebările extinse rămân extinse.</p>
+          <div class="row tree-actions">
+            <button class="btn btn-ghost btn-small btn-subtle" id="expandAll">Extinde toate întrebările</button>
+            <button class="btn btn-ghost btn-small btn-subtle" id="collapseAll">Colapsează toate întrebările</button>
+          </div>
+          <details data-dkey="root" ${openAttr('root', true)}><summary>📁 ${esc(s.name)} (${s.questions.length} întrebări)</summary>
             <div style="padding:8px">
-            ${s.questions.map((q, i) => `<details ${i === s.currentIndex ? 'open' : ''}><summary class="${i === s.currentIndex ? 'live-q' : ''}">${i === s.currentIndex ? '▶ ' : ''}${i + 1}. ${esc(q.title)} (${q.total})</summary>
+            ${s.questions.map((q, i) => `<details data-dkey="q${i}" ${openAttr('q' + i, i === s.currentIndex)}><summary class="${i === s.currentIndex ? 'live-q' : ''}">${i === s.currentIndex ? '▶ ' : ''}${i + 1}. ${esc(q.title)} (${q.total})</summary>
               <div class="tree-opts">${barsHTML(q)}<button class="btn btn-ghost btn-small" data-goto="${i}">Mergi la această întrebare</button></div></details>`).join('')}
             </div>
           </details>
-          <div class="card" style="margin-top:10px"><strong>+ Adaugă vot nou live</strong>
-            <label>Titlu întrebare<input id="liveTitle" type="text" placeholder="ex: Vot de ultim moment" /></label>
-            <label>După ce întrebare? (poziția)<select id="livePos">${s.questions.map((q, i) => `<option value="${i + 1}">După ${i + 1}. ${esc(q.title.slice(0, 30))}</option>`).join('')}<option value="0">La început</option></select></label>
-            <label>Variante (separate prin virgulă)<input id="liveOpts" type="text" placeholder="ex: DA, NU, ABȚINERE" /></label>
-            <button class="btn btn-dark btn-small" id="liveAdd">Adaugă în ordine</button>
-          </div>
         </div>
         <div>
           <div class="card current-card">
@@ -463,8 +583,7 @@ async function renderControl(id) {
             <p class="current-title">${esc(cur.title)}</p>${barsHTML(cur)}` : '<p>Nu există întrebare curentă.</p>'}
             <div class="row" style="margin-top:12px">
               ${s.status === 'draft' ? '<button class="btn btn-primary" id="cStart">▶ Pornește votul</button>' : ''}
-              ${s.status === 'live' ? '<button class="btn btn-ghost btn-small" id="cPrev">← Precedenta</button><button class="btn btn-primary btn-small" id="cNext">Următoarea →</button><button class="btn btn-danger btn-small" id="cClose">■ Închide sesiunea</button>' : ''}
-              ${s.status === 'closed' ? '<button class="btn btn-primary btn-small" id="cReopen">↻ Redeschide</button>' : ''}
+              ${s.status === 'live' ? `<button class="btn btn-ghost btn-small" id="cPrev">← Precedenta</button>${isLast ? '' : '<button class="btn btn-primary btn-small" id="cNext">Următoarea →</button>'}<button class="btn btn-danger btn-small" id="cClose">■ Închide sesiunea</button>` : ''}
               <a class="btn btn-ghost btn-small" href="#/editeaza/${s.id}" data-nav>Editează întrebări</a>
             </div>
           </div>
@@ -472,13 +591,9 @@ async function renderControl(id) {
         </div>
       </div>
     </section>`;
-    // Restaureaza valorile + focusul, ca sa poti scrie linistit in campuri
-    Object.keys(keep).forEach((id) => { const el = $('#' + id); if (el) el.value = keep[id]; });
-    if (focusId && $('#' + focusId)) {
-      const el = $('#' + focusId);
-      el.focus();
-      try { if (selStart != null) el.setSelectionRange(selStart, selEnd); } catch {}
-    }
+    // Punem pagina exact unde era (nu sare la inceput la reimprospatarea automata)
+    if (focusId && $('#' + focusId)) { try { $('#' + focusId).focus({ preventScroll: true }); } catch {} }
+    if (scrollY) window.scrollTo(0, scrollY);
     $('#copyCode').onclick = () => { navigator.clipboard.writeText(s.code); toast('Cod copiat'); };
     $('#copyLink').onclick = () => { navigator.clipboard.writeText(location.origin + location.pathname + '#/voteaza?cod=' + s.code); toast('Link copiat'); };
     const ctl = async (body) => { try { s = await api('/api/sessions/' + id + '/control', { method: 'POST', body: JSON.stringify(body) }); paint(); } catch (e) { toast(e.message); } };
@@ -486,30 +601,29 @@ async function renderControl(id) {
     if ($('#cNext')) $('#cNext').onclick = () => ctl({ action: 'next' });
     if ($('#cPrev')) $('#cPrev').onclick = () => ctl({ action: 'prev' });
     if ($('#cClose')) $('#cClose').onclick = () => ctl({ action: 'close' });
-    if ($('#cReopen')) $('#cReopen').onclick = () => ctl({ action: 'reopen' });
     app.querySelectorAll('[data-goto]').forEach((b) => (b.onclick = () => ctl({ action: 'goto', index: Number(b.dataset.goto) })));
-    if ($('#liveAdd')) $('#liveAdd').onclick = async () => {
-      const title = $('#liveTitle').value.trim();
-      const opts = $('#liveOpts').value.split(',').map((x) => x.trim()).filter(Boolean);
-      if (!title || opts.length < 2) return toast('Scrie titlul + cel puțin 2 variante separate prin virgulă.');
-      const pos = Number($('#livePos').value);
-      const qs = s.questions.map((q) => ({ id: q.id, title: q.title, options: q.options.map((o) => ({ text: o.text, color: o.color })) }));
-      qs.splice(pos, 0, { title, options: opts.map((t, i) => ({ text: t, color: PALETTE[i % PALETTE.length] })) });
-      try { s = await api('/api/sessions/' + id, { method: 'PUT', body: JSON.stringify({ questions: qs }) }); paint(); toast('Întrebare adăugată live ✓'); }
-      catch (e) { toast(e.message); }
-    };
+    // cele doua butoane discrete: extinde / colapseaza toate intrebarile
+    const setAll = (open) => app.querySelectorAll('.tree details').forEach((d) => { d.open = open; });
+    if ($('#expandAll')) $('#expandAll').onclick = () => setAll(true);
+    if ($('#collapseAll')) $('#collapseAll').onclick = () => setAll(false);
   }
   paint();
   stopPoll();
   pollTimer = setInterval(refresh, 2500);
 }
 
-// ---------- Login / header ----------
+// ---------- Login / header / cont ----------
 function refreshHeader() {
   const u = getUser();
-  $('#userBadge').hidden = !u;
-  if (u) $('#userBadge').textContent = '👤 ' + u.name + ' • ' + u.email;
-  $('#loginBtn').textContent = u ? 'Ieși' : 'Intră cu email';
+  const badge = $('#userBadge');
+  badge.hidden = !u;
+  if (u) {
+    badge.innerHTML = `👤 ${esc(u.name)} • ${esc(u.email)}`;
+    badge.title = 'Contul meu';
+  }
+  // Butonul "Intră cu email" se vede doar cand NU esti logat.
+  // ("Ieși" a fost scos — deconectarea se face din fereastra Contul meu.)
+  $('#loginBtn').hidden = !!u;
 }
 
 // Modalul de login: folosim SI atributul `hidden` (cu regula [hidden] din CSS)
@@ -517,6 +631,7 @@ function refreshHeader() {
 // are o versiune veche de styles.css in cache.
 function openLoginModal() {
   const m = $('#loginModal');
+  const pass = $('#loginPass'); if (pass) pass.value = '';
   m.hidden = false; m.style.display = 'flex';
   setTimeout(() => { const el = $('#loginName'); if (el) el.focus(); }, 0);
 }
@@ -525,40 +640,70 @@ function closeLoginModal() {
   m.hidden = true; m.style.display = 'none';
 }
 
-$('#loginBtn').onclick = () => {
-  if (getUser()) {
-    localStorage.removeItem('cabanavot_token');
-    localStorage.removeItem('cabanavot_user');
-    refreshHeader(); toast('Ai ieșit.'); route(); return;
-  }
-  openLoginModal();
+// Fereastra "Contul meu" — apare cand apesi pe numele/emailul din bara de sus.
+function openAccountModal() {
+  const u = getUser();
+  if (!u) return;
+  $('#accName').textContent = u.name || '—';
+  $('#accEmail').textContent = u.email || '—';
+  const m = $('#accountModal');
+  m.hidden = false; m.style.display = 'flex';
+}
+function closeAccountModal() {
+  const m = $('#accountModal');
+  m.hidden = true; m.style.display = 'none';
+}
+
+function logoutLocal() {
+  localStorage.removeItem('cabanavot_token');
+  localStorage.removeItem('cabanavot_user');
+  refreshHeader();
+}
+
+$('#loginBtn').onclick = openLoginModal;
+$('#userBadge').onclick = openAccountModal;
+$('#accClose').onclick = closeAccountModal;
+$('#accountModal').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeAccountModal(); });
+$('#accLogout').onclick = () => {
+  logoutLocal(); closeAccountModal(); toast('Te-ai deconectat.'); route();
+};
+$('#accSwitch').onclick = () => {
+  logoutLocal(); closeAccountModal(); route(); openLoginModal(); // intri din nou, cu alt cont
 };
 $('#closeLogin').onclick = closeLoginModal;
 // Click pe fundalul întunecat (în afara căsuței) închide modalul
 $('#loginModal').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeLoginModal(); });
 // Enter în oricare câmp = apasă pe „Intră”
-['loginName', 'loginEmail'].forEach((id) => {
+['loginName', 'loginEmail', 'loginPass'].forEach((id) => {
   $('#' + id).addEventListener('keydown', (e) => { if (e.key === 'Enter') $('#doLogin').click(); });
 });
 $('#doLogin').onclick = async () => {
   const btn = $('#doLogin');
   const email = $('#loginEmail').value.trim();
   const name = $('#loginName').value.trim();
+  const password = $('#loginPass').value;
   if (!email || !email.includes('@')) return toast('Scrie o adresă de email validă.');
   if (!name) return toast('Scrie și numele tău.');
+  if (password.length < 6) return toast('Parola trebuie să aibă cel puțin 6 caractere.');
   btn.disabled = true; const label = btn.textContent; btn.textContent = 'Se conectează…';
   try {
-    const r = await api('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, name }) });
+    const r = await api('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, name, password }) });
     localStorage.setItem('cabanavot_token', r.token);
     localStorage.setItem('cabanavot_user', JSON.stringify(r.user));
     closeLoginModal();
-    refreshHeader(); toast('Bun venit, ' + r.user.name + '!');
-    route();
+    refreshHeader();
+    toast(r.created ? 'Cont creat! Bun venit, ' + r.user.name + '!'
+      : r.passwordSet ? 'Parolă setată. Bun venit, ' + r.user.name + '!'
+      : 'Bun venit înapoi, ' + r.user.name + '!');
+    // Primul lucru după login: pagina de pornire „Bine ai venit la AG".
+    if (location.hash !== '#/') location.hash = '#/';
+    else route();
   } catch (e) { toast(e.message); }
-  finally { btn.disabled = false; btn.textContent = label; }
+  finally { btn.disabled = false; btn.textContent = label; const p = $('#loginPass'); if (p) p.value = ''; }
 };
 $('#hamburger').onclick = () => $('#mainNav').classList.toggle('open');
 
 refreshHeader();
-closeLoginModal(); // plasă de siguranță: modalul pornește închis chiar dacă CSS-ul e încă în cache
+closeLoginModal(); // plasă de siguranță: modalurile pornesc închise chiar dacă CSS-ul e încă în cache
+closeAccountModal();
 route();

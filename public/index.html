@@ -8,20 +8,22 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles.css?v=2" />
+<link rel="stylesheet" href="styles.css?v=13" />
 <link rel="icon" type="image/png" href="logo.png" />
 <meta name="theme-color" content="#000080" />
 </head>
 <body>
 <header class="topbar">
   <div class="wrap topbar-inner">
+    <button class="hamburger" id="hamburger" aria-label="Meniu">☰</button>
     <a class="brand" href="#/" data-nav>
       <span class="brand-mark" aria-hidden="true">
         <img src="logo.png" alt="" width="44" height="44" />
       </span>
       <span class="brand-text">
         <strong>CabanaVot</strong>
-        <small>Centru Local Cabana Scout • Gata oricând!</small>
+        <small>Centru Local Cabana Scout</small>
+        <small class="brand-slogan">Gata oricând!</small>
       </span>
     </a>
     <nav class="nav" id="mainNav">
@@ -31,10 +33,9 @@
       <a href="#/istoric" data-nav>Istoric</a>
     </nav>
     <div class="topbar-actions">
-      <span class="user-badge" id="userBadge" hidden></span>
+      <button class="user-badge" id="userBadge" title="Contul meu" hidden></button>
       <button class="btn btn-ghost" id="loginBtn">Intră cu email</button>
-      <a class="btn btn-primary" href="#/creeaza" data-nav>+ Creează vot</a>
-      <button class="hamburger" id="hamburger" aria-label="Meniu">☰</button>
+      <a class="btn btn-primary" id="createBtn" href="#/creeaza" data-nav>+ Creează vot</a>
     </div>
   </div>
 </header>
@@ -46,11 +47,18 @@
     <div class="footer-brand">
       <img src="logo.png" alt="Logo Cabana Scout" width="46" height="46" />
       <div>
-        <strong>CabanaVot</strong> • platformă de vot anonim pentru Centrul Local Cabana Scout.<br />
-        <span class="muted">Culori oficiale: <i class="dot" style="background:#0099FF"></i> #0099FF • <i class="dot" style="background:#D1C885"></i> #D1C885 • <i class="dot" style="background:#000080"></i> #000080</span>
+        <strong>CabanaVot</strong> • platformă de vot pentru Centrul Local Cabana Scout.
+        <div class="muted tiny">Voturile sunt anonime.</div>
       </div>
     </div>
-    <div class="muted">Voturile sunt anonime. Codul de acces se generează automat.</div>
+    <div class="footer-right">
+      <div class="footer-support">
+        <strong>Support</strong>
+        <span>telefon: <a href="tel:+40744614455">0744 614 455</a></span>
+        <span>email: <a href="mailto:raresvladescu2@gmail.com">raresvladescu2@gmail.com</a></span>
+      </div>
+      <img class="footer-sign" src="semnatura.png?v=13" alt="Semnătură" />
+    </div>
   </div>
 </footer>
 
@@ -61,16 +69,33 @@
     <p class="muted">Ca să <strong>creezi un vot</strong> trebuie să fii logat — așa salvăm istoricul pe contul tău. <strong>Votanții nu au nevoie de cont</strong>, doar de cod.</p>
     <label>Nume<input id="loginName" type="text" placeholder="ex: Alex Lider" autocomplete="name" /></label>
     <label>Email<input id="loginEmail" type="email" placeholder="ex: alex@exemplu.ro" autocomplete="email" /></label>
+    <label>Parolă<input id="loginPass" type="password" placeholder="minim 6 caractere" autocomplete="current-password" /></label>
     <div class="row">
       <button class="btn btn-primary" id="doLogin">Intră</button>
-      <button class="btn btn-ghost" id="closeLogin">Renunță</button>
+      <button class="btn btn-ghost" id="closeLogin">Vreau să fiu misterios</button>
     </div>
-    <p class="tiny muted">Variantă simplă, fără parolă (aleasă de tine). Bună pentru început; pentru voturi oficiale citește README despre varianta cu parolă.</p>
+    <p class="tiny muted">Dacă intri pentru prima dată, contul se creează acum cu parola aleasă. Data viitoare ai nevoie de aceeași parolă.</p>
+  </div>
+</div>
+
+<!-- Modal cont (se deschide cand apesi pe nume/email in bara de sus) -->
+<div class="modal-backdrop" id="accountModal" hidden>
+  <div class="modal">
+    <h2>Contul meu</h2>
+    <div class="account-info">
+      <div><span class="lbl">Nume</span><strong id="accName">—</strong></div>
+      <div><span class="lbl">Email</span><strong id="accEmail">—</strong></div>
+    </div>
+    <div class="row">
+      <button class="btn btn-primary" id="accSwitch">Conectează-te cu alt cont</button>
+      <button class="btn btn-danger" id="accLogout">Deconectează-te</button>
+      <button class="btn btn-ghost" id="accClose">Închide</button>
+    </div>
   </div>
 </div>
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="app.js?v=2"></script>
+<script src="app.js?v=13"></script>
 </body>
 </html>
