@@ -10,7 +10,7 @@ logo oficial extras din manual în `public/logo.png`).
 - ⚖️ **Cvorumul** se calculează prin rotunjire în sus (2/3 din votanți; ex. 24,3 → 25). Sub checkbox a rămas doar „Am nevoie de cvorum 2/3", iar după bifare apare scurt **„Cvorumul este X (2/3 din N cu drept de vot)"**.
 - 🏷️ Pagina de creare: au dispărut textul explicativ de sub titlu și eticheta de deasupra căsuței de nume (rămâne placeholder-ul).
 - 🖱️ **Mutarea întrebărilor e mai interactivă**: poți apuca întrebarea de oriunde (nu doar de mâner), aceasta se ridică în relief și urmărește mouse-ul; când acoperă 55% din altă întrebare, locurile fac schimb, iar la eliberare rămâne pe poziția nouă. Nu mai apar etichetele „Întrebarea 1/2".
-- 🧭 Blocul **Support** din footer a fost mutat încă 2 cm spre stânga.
+- 🧭 Blocul **Support** din footer a fost mutat 2 cm spre stânga, cu puțin spațiu suplimentar ca să nu intre sub sigla Netlify din colț.
 - 🔎 **Istoric**: bara de căutare și lista sunt mult mai late, cu text ceva mai mare.
 - ✨ Toate butoanele au acum efect la hover (se colorează sau se măresc puțin); butoanele din hero se măresc discret.
 - 🔢 Rotița mouse-ului nu mai modifică numărul din câmpul „persoane cu drept de vot" — valoarea se schimbă doar de la tastatură.

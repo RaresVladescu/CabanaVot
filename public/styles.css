@@ -210,7 +210,8 @@ body.dragging-active{cursor:grabbing;user-select:none}
 .footer-brand{display:flex;align-items:center;gap:12px}
 .footer-brand img{display:block}
 /* Support in subsol: trei rânduri — Support / telefon: / email:.
-   Pe ecranele late (>=861px) blocul stă lipit de marginea din dreapta, cu 2 cm mai la stânga. */
+   Pe ecranele late (>=861px) blocul stă cu ~3 cm mai la stânga decât poziția inițială,
+   ca să rămână loc pentru sigla Netlify din colțul dreapta-jos. */
 .footer-support{display:flex;flex-direction:column;gap:2px;align-items:flex-start;font-weight:600}
 .footer-support strong{color:var(--mov)}
 .footer-support a{color:var(--text);text-decoration:none;font-weight:700}
@@ -218,7 +219,11 @@ body.dragging-active{cursor:grabbing;user-select:none}
 .footer-right{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
 @media(min-width:861px){
   .footer{position:relative}
-  .footer-right{position:absolute;right:160px;bottom:16px}
+  .footer-right{position:absolute;right:210px;bottom:16px}
+}
+/* Pe telefon sigla Netlify stă peste colțul din dreapta-jos: lăsăm spațiu sub Support. */
+@media(max-width:860px){
+  .footer{padding-bottom:72px}
 }
 .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}
 .step{background:#fff;border-radius:14px;padding:14px;border:1.5px solid rgba(0,0,128,.25)}
