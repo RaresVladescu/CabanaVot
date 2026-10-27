@@ -1,16 +1,18 @@
 {
   "name": "cabanavot",
   "version": "1.0.0",
-  "description": "CabanaVot — platforma de vot Cabana Scout. Backend real + frontend modern.",
+  "description": "CabanaVot — platforma de vot Cabana Scout. Frontend static + API serverless pe Netlify.",
+  "type": "module",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
+    "@netlify/blobs": "^11.1.7",
     "cors": "^2.8.5",
     "express": "^4.19.2"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22.12.0"
   }
 }

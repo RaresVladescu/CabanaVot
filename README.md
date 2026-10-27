@@ -5,6 +5,49 @@ cu design după Manualul de identitate vizuală Cabana Scout v3.0
 (albastru `#0099FF`, bej `#D1C885`, mov închis `#000080`, font Red Hat Display,
 logo oficial extras din manual în `public/logo.png`).
 
+## Actualizări v1.5 (27 oct 2026) — mutare pe Netlify
+
+- ☁️ **Site-ul rulează acum pe Netlify**, la **https://vot.cabanascout.ro**, cu deploy automat din GitHub.
+- ⚡ **Fără „adormire"**: pagina e servită de CDN (se încarcă imediat), iar API-ul pornește doar când e nevoie.
+- 💾 **Datele persistă**: utilizatorii, sesiunile și voturile sunt salvate în **Netlify Blobs** și rămân acolo la redeploy/repornire.
+- 🔒 Scrierile sunt **atomice** (etag + onlyIfMatch): dacă doi oameni votează în același moment, voturile nu se pierd.
+- 🧩 Pentru utilizator nimic nu se schimbă: aceleași pagini, același API, aceleași reguli (vot blocat după prima alegere, sesiune închisă = înghețată).
+- 🛠️ Local merge exact ca înainte: `npm install && npm start` → http://localhost:3000 (date în `db.json`).
+
+## Actualizări v1.4 (17 oct 2026) — ce s-a schimbat
+
+- 🏠 **„Bine ai venit la AG" apare doar prima dată** când intri pe site. După aceea, butonul „Acasă" duce direct la pagina normală.
+- ⌨️ **Săgeata ↓ / ↑ mută cursorul** între căsuțele de text din formular: scrii titlul întrebării, apeși ↓ și ajungi la prima variantă de răspuns.
+- 🖱️ **Muți întrebările prin tragere**: ține apăsat pe mânerul `⠿` (sau pe zona întrebării) și trage peste altă întrebare. Pe telefon e „apasă și ține" ca la o iconiță de aplicație. În pagina de editare, noua ordine se salvează automat.
+- 🧹 S-a scos textul din paranteză de la butonul „+ Adaugă întrebare oriunde".
+- 🗳️ **Votantul care a votat, iese și intră din nou NU mai poate vota la aceeași întrebare** (același browser/dispozitiv: serverul ține minte id-ul anonim; butoanele rămân blocate).
+- 📋 **În controlul live, întrebările extinse rămân extinse** (nu se mai închid la reîmprospătare/scroll) + două butoane discrete: **„Extinde toate întrebările"** și **„Colapsează toate întrebările"**.
+- 🗑️ S-a scos caseta „+ Adaugă vot nou live" de sub lista de întrebări. Modifici întrebările din **„Editează întrebări"**.
+- 🎨 **Mov închis `#000080` pentru linii și accente** (header, footer, chenare, focus).
+- 🖼️ Logo reparat: nu se mai „întinde" când bara de sus e îngustă.
+- 🔒 **O sesiune închisă rămâne închisă** (nu se mai poate redeschide) și nu mai apare în „Sesiunile mele" — trece în **Istoric**.
+- ✨ **Butoanele albe cu scris au efect la hover** (se colorează cu movul închis, ca butoanele din header).
+- 📌 **Pagina rămâne la poziția unde ai dat scroll** (nu mai sare la început la reîmprospătare).
+- ⬇️ **Footer-ul stă mereu jos**, lipit de baza paginii, chiar și pe paginile scurte (ex: „Votează cu cod").
+- 🧽 S-au scos textele „Aceasta este ultima întrebare…" și „Total voturi pe întrebare…".
+- ⚖️ **Cvorumul apare doar dacă e pornit**, ca „Cvorumul este X persoane".
+- 🏷️ În header: „Centru Local Cabana Scout" / „Gata oricând!". În subsol e trecut **Support** (telefon + email).
+- 🏕️ **Fundal cu căsuțe mici** (siluete din manualul de identitate vizuală, în albastru-mov, ușor transparente) pe header și footer.
+- 🏠 Pagina acasă: în „De ce CabanaVot?" scrie acum **„Sesiuni de vot nelimitate"**; la „Cum funcționează" pașii 1 și 2 au textele noi; butonul e **„Controlează live →"**.
+- ✍️ **Semnătura (landscape, tuș negru pe fond transparent)** apare în footer, în dreapta jos, lângă datele de contact; pe ecranele late stă lipită de colțul din dreapta al paginii.
+- 🔢 S-au scos numerele din titlurile paginilor: acum scrie simplu **„Sesiunile mele"** și **„Istoric sesiuni"**.
+
+## Actualizări v1.3 (17 oct 2026) — ce s-a schimbat
+
+- 🔒 **Login cu parolă**: la prima intrare contul se creează cu parola aleasă (minim 6 caractere); apoi intri mereu cu aceeași parolă. Parola se salvează doar ca „amprentă" (hash scrypt + salt), nu în clar.
+- 🗳️ **Votul nu mai poate fi schimbat**: după ce apeși o variantă, votul rămâne înregistrat și aștepți următoarea întrebare. Butoanele se blochează, iar serverul respinge orice modificare.
+- 👤 **Butonul „Ieși" a fost scos** din bara de sus. Acum apeși pe numele tău/email → se deschide fereastra **„Contul meu"**, de unde te poți deconecta sau intra cu alt cont.
+- 🏠 **Pagină de start „Bine ai venit la AG"** imediat după login (buton „Continuă" spre platformă). Acasă pentru conturile logate duce tot acolo.
+- ✏️ În formularul de login, butonul „Renunță" se numește acum **„Vreau să fiu misterios"**; s-au scos din subsol codurile hex și textul „culorile oficiale", ca și mențiunea că „codul se generează automat".
+- ➡️ Butonul **„Următoarea" nu mai apare la ultima întrebare** (ca administrator poți închide sesiunea).
+- 📱 Meniul **☰ e pe partea stângă**, iar pe telefon pagina se încadrează corect, fără zoom out (latimi flexibile + protecție anti-derulare pe orizontală).
+- 🚫 Butonul **„+ Creează vot"** din bara de sus dispare cât timp ești în formularul de creare/editare a unui vot.
+
 ## Actualizări v1.1 (17 oct 2026) — ce s-a reparat
 
 - 🐞 **Reparat bug-ul mare de la login**: modalul „Intră cu email" rămânea lipit pe ecran
@@ -27,22 +70,27 @@ logo oficial extras din manual în `public/logo.png`).
 ## Ce face (conform indicațiilor tale)
 
 - ✅ Oricine poate crea un vot, dar **doar creatorul poate modifica** întrebările/variantele.
-- ✅ Ca să creezi un vot trebuie să fii **logat cu email** (variantă simplă, fără parolă) — se salvează istoricul pe cont.
+- ✅ Ca să creezi un vot trebuie să fii **logat cu email + parolă** — se salvează istoricul pe cont.
 - ✅ Votantul **nu are nevoie de cont**, doar de **codul generat automat** (6 caractere).
 - ✅ Voturi **anonime** (serverul ține minte doar un id aleatoriu, nu cine ce a votat).
 - ✅ **Istoric cu toate sesiunile** (ex: „AG primăvara 2026"), extensibil: sesiune → întrebări → variante + voturi.
 - ✅ **Cvorum 2/3 opțional**: bifezi căsuța, scrii câte persoane au drept de vot, site-ul calculează `ceil(total × 2/3)`. E doar o **indicație**, votul pornește oricum.
 - ✅ Administratorul **vede live câte persoane au votat fiecare variantă**.
-- ✅ Administratorul **creează sesiunea când vrea, o pornește când vrea, trece de la o întrebare la alta** (Start / Precedenta / Următoarea / salt direct) și **poate adăuga o întrebare nouă live, oriunde în ordine**, din meniul unde vede toată sesiunea.
+- ✅ Administratorul **creează sesiunea când vrea, o pornește când vrea, trece de la o întrebare la alta** (Start / Precedenta / Următoarea / salt direct). Întrebările se modifică din **„Editează întrebări"** (poți edita inclusiv în timpul votului).
 - ✅ La fiecare variantă poți pune **culoare diferită**, iar bara de rezultate se colorează cu ea, proporțional cu voturile.
 
 ## Structura (pe înțeles de începător)
 
-Gândește-te la aplicație ca la o cabană cu două părți:
+Gândește-te la aplicație ca la o cabană cu mai multe părți:
 
 1. **`public/` = partea vizibilă (frontend)** — ce vede lumea în browser: `index.html` (scheletul), `styles.css` (culorile frumoase), `app.js` (butoanele, votul live), `logo.png` (logo-ul oficial din manualul de identitate).
-2. **`server.js` = creierul (backend)** — ține minte utilizatorii, sesiunile și voturile, dă codurile, verifică că doar creatorul editează. Salvează totul în **`db.json`** (un fișier text care ține loc de bază de date simplă).
-3. **`package.json`** = lista de „unelte” necesare (Express + CORS). E ca o listă de cumpărături pentru server.
+2. **`lib/api.js` = creierul (logica API)** — ține minte utilizatorii, sesiunile și voturile, dă codurile, verifică că doar creatorul editează. Este scris o singură dată și folosit în ambele medii.
+3. **`lib/file-store.js`** = salvarea locală, în **`db.json`** (pentru dezvoltare pe calculator).
+4. **`lib/blobs-store.mjs`** = salvarea în producție, în **Netlify Blobs** (cu scriere condiționată, ca să nu se piardă voturi).
+5. **`netlify/functions/api.mjs`** = API-ul serverless de pe Netlify (pornește doar la cereri).
+6. **`server.js`** = serverul local (Express) pentru `npm start`; folosește aceeași logică din `lib/api.js`.
+7. **`netlify.toml`** = îi spune Netlify ce să publice: folderul `public/` și funcția din `netlify/functions/`.
+8. **`package.json`** = lista de „unelte” necesare (Express + CORS local, `@netlify/blobs` în producție). E ca o listă de cumpărături pentru server.
 
 De ce backend real și nu doar un fișier HTML?
 - Doar-HTML = votul ar funcționa doar pe laptopul tău. Telefoanele votanților n-ar putea trimite voturile la tine.
@@ -50,7 +98,7 @@ De ce backend real și nu doar un fișier HTML?
 
 ## Cum rulezi pe calculatorul tău (test local)
 
-Ai nevoie de **Node.js 18+** instalat (o singură dată de pe https://nodejs.org).
+Ai nevoie de **Node.js 22+** instalat (o singură dată de pe https://nodejs.org).
 
 ```bash
 cd CabanaVot
@@ -60,52 +108,59 @@ npm start
 
 Deschide apoi http://localhost:3000
 
-## Cum o faci PUBLICĂ (s-o acceseze oricine) — varianta cea mai simplă: Render.com (gratuit)
+## Cum o faci PUBLICĂ (s-o acceseze oricine) — Netlify (gratuit, fără „adormire")
 
-1. Fă-ți cont pe https://github.com și urcă folderul `CabanaVot` într-un repository nou (poți trage fișierele direct în pagina GitHub → Add file → Upload).
-2. Fă-ți cont pe https://render.com (te loghezi cu GitHub).
-3. În Render: **New → Web Service → conectezi repository-ul CabanaVot**.
-   - Build Command: `npm install`
-   - Start Command: `npm start`
-   - Plan: Free.
-4. Apasă Deploy. Primești un link de forma `https://cabanavot.onrender.com` — ăsta e linkul public, îl trimiți oricui.
+Site-ul e deja legat la domeniul **https://vot.cabanascout.ro** (subdomeniu al `cabanascout.ro`),
+iar Netlify îl publică automat din repository-ul GitHub `cabanavot`.
 
-Alternativ: Railway.app, Fly.io sau un VPS — pașii sunt aceiași (Build `npm install`, Start `npm start`, portul îl alege platforma prin variabila `PORT`).
+Cum funcționează (pe scurt):
+- **`public/`** e urcat pe CDN-ul Netlify — se încarcă repede, fără server care „adoarme".
+- **`netlify/functions/api.mjs`** este API-ul serverless: pornește doar când cineva face o cerere.
+- **Netlify Blobs** ține datele (utilizatori, sesiuni, voturi) — **persistă** între deploy-uri și reporniri.
 
-### Cum publici o actualizare (redeploy) după ce ai modificat fișiere
+### Prima configurare (o singură dată, dacă refaci site-ul)
+
+1. Urcă folderul `CabanaVot` în repository-ul GitHub (păstrează structura folderelor).
+2. În Netlify: **Add new site → Import an existing project → GitHub → repository-ul `cabanavot`**.
+3. Setările sunt deja în `netlify.toml`: **Build command `npm install`**, **Publish directory `public`**, funcțiile în `netlify/functions`.
+4. Apasă **Deploy**. Netlify citește `netlify.toml` și publică `public/` + funcția API.
+5. La **Domain settings** adaugi domeniul `vot.cabanascout.ro` (CNAME către `<site>.netlify.app`). Certificatul SSL se emite automat.
+
+> ℹ️ La primul deploy baza de date pornește **goală** (fișierul local `db.json` nu se urcă pe GitHub).
+> Nu e nimic de configurat: contul tău se recreează automat la prima intrare cu email + parolă,
+> iar istoricul începe de la zero. Datele de acum rămân doar pe calculatorul tău.
+
+### Cum publici o actualizare
 
 1. Intră pe GitHub în repository-ul `cabanavot` → **Add file → Upload files**.
 2. Trage fișierele modificate (păstrează structura folderelor!):
-   - `public/index.html`, `public/styles.css`, `public/app.js`, `public/logo.png` (dacă s-a schimbat logo-ul)
-   - `README.md` (opțional)
-3. Apasă **Commit changes**. Render detectează automat commit-ul și începe redeploy-ul (~1-2 minute).
-4. Când scrie „Live" în Render, deschide site-ul cu un **refresh complet** (Ctrl+F5 pe Windows,
-   sau închide/reia tab-ul pe telefon) — fișierele au `?v=2` în nume, deci cache-ul nu mai e o problemă.
+   - `public/index.html`, `public/styles.css`, `public/app.js`, `public/logo.png`, `public/semnatura.png`
+   - `server.js`, `lib/api.js`, `lib/file-store.js`, `lib/blobs-store.mjs`, `netlify/functions/api.mjs`, `netlify.toml`, `package.json`, `package-lock.json`
+3. Apasă **Commit changes**. Netlify detectează commit-ul și redeploy-ază automat (~1 minut).
+4. Deschide site-ul cu un **refresh complet** (Ctrl+F5 pe Windows, sau închide/reia tab-ul pe telefon).
+   Fișierele au `?v=13` în nume, deci browserul ia imediat versiunea nouă.
 
-> ⚠️ **Foarte important pe planul gratuit**: pe Render, la fiecare **redeploy sau repornire**,
-> fișierul `db.json` (utilizatori, sesiuni, voturi) se poate **reseta** — nu te baza pe el pentru
-> un vot oficial. **Nu face redeploy în timpul unui vot real!** Cât timp serviciul doar „adoarme",
-> datele de obicei rămân, dar pentru siguranță descarcă `db.json` (din tabul Shell/Logs al
-> serviciului sau din repository după cum îl configurezi) înainte de evenimente mari.
-> Pentru AG-uri importante: planul Starter (~7$/lună) + persistent disk rezolvă ambele probleme
-> (datele nu se mai resetează, serverul nu mai adoarme).
+> ✅ **Datele NU se pierd la redeploy**: voturile stau în Netlify Blobs, nu pe discul serverului.
+> Poți face deploy liniștit și în timpul unui vot.
 
-> Notă: pe planul gratuit Render, serverul „adoarme" după inactivitate și pornește mai greu la primul acces (~30s). Ține un tab deschis cu ~5 minute înainte de vot.
+> 🔁 Dacă vrei să schimbi ceva în configurare, o poți face și din Netlify → **Site configuration → Build & deploy**;
+> totuși `netlify.toml` din repository are prioritate, ca să fie totul versionat în Git.
 
 ## Fluxul de vot la un eveniment real
 
-1. Administratorul: Intră cu email → Creează vot → primește codul (ex: `K7P2QX`) → apasă **Controlează live → Pornește votul**.
+1. Administratorul: Intră cu email + parolă → Creează vot → primește codul (ex: `K7P2QX`) → apasă **Controlează live → Pornește votul**.
 2. Proiectează pe ecran codul + linkul (butoanele „Copiază codul/linkul").
 3. Votanții: intră pe linkul public → Votează cu cod → votează întrebarea curentă (fără cont).
 4. Administratorul: vede barele colorate live → apasă Următoarea → la final Închide sesiunea → totul rămâne în Istoric.
 
 ## Limitări asumate (important să știi)
 
-- Loginul e **simplu, fără parolă** (cum ai ales): oricine știe emailul tău NU îți poate fura sesiunile (trebuie tokenul din browserul tău), dar nici nu e securitate de nivel bancar. Pentru voturi statutare critice, următorul pas e email+parolă (pot adăuga).
-- Baza de date e un fișier `db.json`: bun pentru zeci/sute de votanți. Fă backup din când în când (descarcă fișierul din server).
+- Loginul e **email + parolă** (parola e salvată ca hash scrypt, nu în clar; tokenul din browser se reînnoiește la fiecare login). Bună pentru cercetași; pentru voturi statutare critice, următorul pas ar fi verificarea emailului (link de confirmare).
+- Baza de date e un fișier `db.json` **doar local**; în producție datele stau în **Netlify Blobs** (cu scriere condiționată, ca să nu se piardă voturi când scriu mai mulți deodată). Fă backup din când în când dacă ții la istoric.
 - Votul dublu e prevenit per browser (id anonim). Dacă cineva votează de pe 2 telefoane, contează dublu — ca la voxvote în varianta simplă. Pentru protecție avansată (listă nominală de alegători), trebuie modulul „alegători invitați".
 
 ## Comenzi utile
 
-- `npm start` — pornește serverul
-- fișierul `db.json` apare automat la prima pornire — nu-l șterge dacă vrei să păstrezi istoricul
+- `npm start` — pornește serverul local (http://localhost:3000)
+- fișierul `db.json` apare automat la prima pornire locală — nu-l șterge dacă vrei să păstrezi istoricul de pe calculator
+- în producție datele sunt în **Netlify Blobs** (nu în `db.json`), deci nu se pierd la redeploy
