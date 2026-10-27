@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles.css?v=13" />
+<link rel="stylesheet" href="styles.css?v=14" />
 <link rel="icon" type="image/png" href="logo.png" />
 <meta name="theme-color" content="#000080" />
 </head>
@@ -29,13 +29,12 @@
     <nav class="nav" id="mainNav">
       <a href="#/" data-nav>Acasă</a>
       <a href="#/voteaza" data-nav>Votează cu cod</a>
-      <a href="#/sesiunile-mele" data-nav>Sesiunile mele</a>
+      <a href="#/sesiunile-mele" data-nav>Sesiuni active</a>
       <a href="#/istoric" data-nav>Istoric</a>
     </nav>
     <div class="topbar-actions">
       <button class="user-badge" id="userBadge" title="Contul meu" hidden></button>
       <button class="btn btn-ghost" id="loginBtn">Intră cu email</button>
-      <a class="btn btn-primary" id="createBtn" href="#/creeaza" data-nav>+ Creează vot</a>
     </div>
   </div>
 </header>
@@ -47,7 +46,7 @@
     <div class="footer-brand">
       <img src="logo.png" alt="Logo Cabana Scout" width="46" height="46" />
       <div>
-        <strong>CabanaVot</strong> • platformă de vot pentru Centrul Local Cabana Scout.
+        <strong>CabanaVot</strong>
         <div class="muted tiny">Voturile sunt anonime.</div>
       </div>
     </div>
@@ -57,7 +56,6 @@
         <span>telefon: <a href="tel:+40744614455">0744 614 455</a></span>
         <span>email: <a href="mailto:raresvladescu2@gmail.com">raresvladescu2@gmail.com</a></span>
       </div>
-      <img class="footer-sign" src="semnatura.png?v=13" alt="Semnătură" />
     </div>
   </div>
 </footer>
@@ -66,9 +64,8 @@
 <div class="modal-backdrop" id="loginModal" hidden>
   <div class="modal">
     <h2>Intră cu email</h2>
-    <p class="muted">Ca să <strong>creezi un vot</strong> trebuie să fii logat — așa salvăm istoricul pe contul tău. <strong>Votanții nu au nevoie de cont</strong>, doar de cod.</p>
-    <label>Nume<input id="loginName" type="text" placeholder="ex: Alex Lider" autocomplete="name" /></label>
-    <label>Email<input id="loginEmail" type="email" placeholder="ex: alex@exemplu.ro" autocomplete="email" /></label>
+    <p class="muted"><strong>Votanții nu au nevoie de cont</strong> — votează doar cu codul.</p>
+    <label>Email<input id="loginEmail" type="email" placeholder="adresa@email.ro" autocomplete="email" /></label>
     <label>Parolă<input id="loginPass" type="password" placeholder="minim 6 caractere" autocomplete="current-password" /></label>
     <div class="row">
       <button class="btn btn-primary" id="doLogin">Intră</button>
@@ -83,7 +80,6 @@
   <div class="modal">
     <h2>Contul meu</h2>
     <div class="account-info">
-      <div><span class="lbl">Nume</span><strong id="accName">—</strong></div>
       <div><span class="lbl">Email</span><strong id="accEmail">—</strong></div>
     </div>
     <div class="row">
@@ -96,6 +92,6 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="app.js?v=13"></script>
+<script src="app.js?v=14"></script>
 </body>
 </html>

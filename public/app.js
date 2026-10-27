@@ -66,7 +66,11 @@ function barsHTML(question) {
 window.addEventListener('hashchange', route);
 document.addEventListener('click', (e) => {
   const a = e.target.closest('[data-nav]');
-  if (a) { document.querySelectorAll('.nav a').forEach((x) => x.classList.remove('active')); }
+  if (a) {
+    document.querySelectorAll('.nav a').forEach((x) => x.classList.remove('active'));
+    const nav = document.querySelector('#mainNav');
+    if (nav) nav.classList.remove('open');
+  }
 });
 // Extindere/pliere (istoric, lista live) — UN SINGUR handler global.
 // Inainte se adauga un handler nou la fiecare vizita a paginii, iar dublurile
@@ -81,9 +85,9 @@ document.addEventListener('click', (e) => {
 function route() {
   stopPoll();
   const h = location.hash || '#/';
-  // Butonul "+ Creează vot" din bara de sus dispare cand esti deja in formularul de vot.
-  const createBtn = $('#createBtn');
-  if (createBtn) createBtn.hidden = h.startsWith('#/creeaza') || h.startsWith('#/editeaza');
+  // Meniul mobil se inchide la fiecare schimbare de pagina.
+  const nav = $('#mainNav');
+  if (nav) nav.classList.remove('open');
   const activeHref = h.startsWith('#/bine-ai-venit') || h.startsWith('#/platforma') ? '#/' : h.split('?')[0];
   document.querySelectorAll('#mainNav a').forEach((a) => a.classList.toggle('active', a.getAttribute('href') === activeHref));
   if (h.startsWith('#/bine-ai-venit')) return renderWelcome();
@@ -107,28 +111,10 @@ async function renderHome() {
   app.innerHTML = `
   <section class="hero">
     <div class="hero-card">
-      <h1>Vot simplu, anonim și live pentru Cabana Scout</h1>
-      <p>Creezi o sesiune (ex: <strong>AG primăvara 2026</strong>), primești automat un <strong>cod de acces</strong>, oamenii votează de pe telefon <strong>fără cont</strong>, iar tu controlezi când treci de la o întrebare la alta.</p>
+      <h1>Vot anonim</h1>
       <div class="hero-cta">
         <a class="btn btn-bej" href="#/creeaza" data-nav>+ Creează vot</a>
         <a class="btn btn-ghost" style="background:#fff" href="#/voteaza" data-nav>Votează cu cod</a>
-      </div>
-      <p class="tiny" style="opacity:.85;margin-top:12px">Model inspirat de voxvote.com • design după Manualul de identitate vizuală Cabana v3.0</p>
-    </div>
-    <div class="hero-side">
-      <div class="card">
-        <h3>Intră rapid cu cod</h3>
-        <div class="join-row">
-          <input id="homeCode" type="text" placeholder="ex: K7P2QX" maxlength="6" style="text-transform:uppercase" />
-          <button class="btn btn-primary" id="homeGo">Intră</button>
-        </div>
-        <p class="tiny muted">Codul îl primești de la administratorul votului.</p>
-      </div>
-      <div class="card">
-        <h3>De ce CabanaVot?</h3>
-        <div>🕵️ <strong>Anonim</strong> — nu salvăm cine ce a votat.</div>
-        <div>📊 <strong>Istoric complet</strong> — toate sesiunile rămân în Istoric.</div>
-        <div>♾️ <strong>Sesiuni de vot nelimitate</strong> — creezi câte vrei.</div>
       </div>
     </div>
   </section>
@@ -141,11 +127,6 @@ async function renderHome() {
     </div>
   </section>
   ${last.length ? `<section class="card"><h2>Ultimele sesiuni din istoric</h2>${last.map(sessionCardMini).join('')}<p><a href="#/istoric" data-nav>Vezi tot istoricul →</a></p></section>` : ''}`;
-  $('#homeGo').onclick = () => {
-    const c = $('#homeCode').value.trim().toUpperCase();
-    if (!c) return toast('Scrie codul primit de la administrator.');
-    location.hash = '#/voteaza?cod=' + encodeURIComponent(c);
-  };
 }
 
 // ---------- Pagina de pornire (prima pagina dupa login — doar prima data) ----------
@@ -172,9 +153,9 @@ async function renderJoin() {
   app.innerHTML = `
   <section class="card">
     <h2>Votează cu cod</h2>
-    <p class="muted">Nu ai nevoie de cont. Introdu codul primit de la administrator (6 caractere). Votul tău e <strong>anonim</strong>.</p>
+    <p class="muted">Votul tău e <em><strong>anonim</strong></em>.</p>
     <div class="join-row">
-      <input id="vCode" type="text" placeholder="ex: K7P2QX" maxlength="6" value="${esc(prefill)}" style="text-transform:uppercase;font-weight:900;letter-spacing:3px" />
+      <input id="vCode" type="text" placeholder="Codul votului" maxlength="6" value="${esc(prefill)}" style="text-transform:uppercase;font-weight:900;letter-spacing:3px" />
       <button class="btn btn-primary" id="vJoin">Intră la vot</button>
     </div>
     <div id="vArea" style="margin-top:14px"></div>
@@ -241,13 +222,13 @@ function questionBlock(q = { title: '', options: [{ text: '', color: PALETTE[0] 
     <div class="qhead">
       <span class="drag-handle" title="Ține apăsat și trage ca să muți întrebarea">⠿</span>
       <strong>Întrebarea ${qi + 1}</strong>
-      <input type="text" class="qtitle" placeholder="ex: Aprobați raportul de activitate?" value="${esc(q.title)}" autocomplete="off" data-lpignore="true" data-1p-ignore data-form-type="other" />
+      <input type="text" class="qtitle" placeholder="Scrie întrebarea" value="${esc(q.title)}" autocomplete="off" data-lpignore="true" data-1p-ignore data-form-type="other" />
       <button type="button" class="icon-btn del-q" title="Șterge întrebarea">✕</button>
     </div>
     <div class="opts">${q.options.map((o) => `
       <div class="opt-row">
         <input type="color" class="ocolor" value="${esc(o.color || '#0099FF')}" title="Culoarea barei de rezultate" />
-        <input type="text" class="otext" placeholder="Variantă de răspuns (ex: DA)" value="${esc(o.text)}" autocomplete="off" data-lpignore="true" data-1p-ignore data-form-type="other" />
+        <input type="text" class="otext" placeholder="Variantă de răspuns" value="${esc(o.text)}" autocomplete="off" data-lpignore="true" data-1p-ignore data-form-type="other" />
         <button type="button" class="icon-btn del-opt" title="Șterge varianta">−</button>
       </div>`).join('')}</div>
     <button type="button" class="btn btn-ghost btn-small add-opt">+ Adaugă variantă</button>
@@ -398,10 +379,10 @@ async function renderCreate() {
   app.innerHTML = `
   <section class="card">
     <h2>Creează sesiune de vot</h2>
-    <p class="muted">O sesiune are un nume (ex: <em>AG primăvara 2026</em>) și mai multe întrebări. Codul pentru votanți se generează <strong>automat</strong>.</p>
-    <label>Numele sesiunii<input id="fName" type="text" placeholder="ex: AG primăvara 2026" /></label>
+    <p class="muted">O sesiune are un nume și mai multe întrebări. Codul pentru votanți se generează <strong>automat</strong>.</p>
+    <label>Numele sesiunii<input id="fName" type="text" placeholder="Numele sesiunii" /></label>
     <div class="checkline"><input id="fQuorum" type="checkbox" /><div><strong>Am nevoie de cvorum 2/3</strong><br/><span class="muted">Dacă bifezi, se deschide un câmp unde scrii câte persoane au drept de vot, iar site-ul calculează câte trebuie să fie înregistrate. E doar o indicație — votul poate începe oricum.</span></div></div>
-    <div id="quorumFields" hidden><label>Câte persoane au drept de vot?<input id="fTotal" type="number" min="1" placeholder="ex: 90" /></label><span class="quorum-result" id="quorumHint"></span></div>
+    <div id="quorumFields" hidden><label>Câte persoane au drept de vot?<input id="fTotal" type="number" min="1" /></label><span class="quorum-result" id="quorumHint"></span></div>
     <h3>Întrebări + variante (fiecare variantă poate avea culoarea ei)</h3>
     <div id="qList">${questionBlock(undefined, 0)}</div>
     <div class="row"><button class="btn btn-ghost btn-small" id="addQ">+ Adaugă întrebare</button>
@@ -451,11 +432,11 @@ async function renderEdit(id) {
   };
 }
 
-// ---------- Sesiunile mele ----------
+// ---------- Sesiuni active ----------
 async function renderMine() {
   const user = getUser();
   if (!user) {
-    app.innerHTML = `<section class="card"><h2>Sesiunile mele</h2><p>Intră cu emailul ca să vezi sesiunile create de tine și istoricul aferent contului.</p><button class="btn btn-primary" onclick="document.querySelector('#loginBtn').click()">Intră cu email</button></section>`;
+    app.innerHTML = `<section class="card"><h2>Sesiuni active</h2><p>Intră cu emailul ca să vezi sesiunile create de tine și istoricul aferent contului.</p><button class="btn btn-primary" onclick="document.querySelector('#loginBtn').click()">Intră cu email</button></section>`;
     return;
   }
   let mine = [];
@@ -463,7 +444,7 @@ async function renderMine() {
   // Sesiunile închise nu mai sunt active: nu se mai arată aici, doar în Istoric.
   const active = mine.filter((s) => s.status !== 'closed');
   const closedCount = mine.length - active.length;
-  app.innerHTML = `<section><h2>Sesiunile mele</h2>
+  app.innerHTML = `<section><h2>Sesiuni active</h2>
   <p class="tiny muted">Aici apar sesiunile active (proiect sau live). Cele închise rămân în <a href="#/istoric" data-nav>Istoric</a>${closedCount ? ` (${closedCount} ${closedCount === 1 ? 'sesiune închisă' : 'sesiuni închise'})` : ''}.</p>
   ${active.length ? active.map((s) => `
     <div class="session">
@@ -501,14 +482,16 @@ async function renderMine() {
 async function renderHistory() {
   let list = [];
   try { list = await api('/api/sessions'); } catch (e) { app.innerHTML = `<p>${esc(e.message)}</p>`; return; }
+  const me = getUser();
   app.innerHTML = `<section>
     <h2>Istoric sesiuni</h2>
-    <p class="muted">Apasă pe numele sesiunii ca să extinzi și să vezi ce s-a votat. Apoi apasă pe o întrebare ca să vezi variantele + câte persoane au votat.</p>
-    <input id="hSearch" type="text" placeholder="Caută sesiune (ex: AG primăvara 2026)..." />
-    <div id="hList" style="margin-top:12px">${list.map(historyItem).join('') || '<div class="card">Nicio sesiune încă.</div>'}</div>
+    <input id="hSearch" type="text" placeholder="Caută sesiune..." />
+    <div id="hList" style="margin-top:12px">${list.map((s) => historyItem(s, me)).join('') || '<div class="card">Nicio sesiune încă.</div>'}</div>
   </section>`;
-  function historyItem(s) {
-    return `<div class="session" data-name="${esc(s.name.toLowerCase())}">
+  function historyItem(s, me) {
+    const canDelete = !!me && s.ownerEmail === me.email;
+    return `<div class="session" data-name="${esc(s.name.toLowerCase())}"${canDelete ? ' data-own="1"' : ''}>
+      ${canDelete ? `<button class="trash-btn" data-del="${s.id}" data-sname="${esc(s.name)}" title="Șterge sesiunea" aria-label="Șterge sesiunea">🗑</button>` : ''}
       <button class="session-head" data-toggle><span class="sname">📁 ${esc(s.name)}</span><span class="row">${statusPill(s.status)}<span class="tiny muted">${esc(s.code)} • ${s.questionsCount} întrebări</span></span></button>
       <div class="session-body" hidden>
         ${quorumBox(s)}
@@ -520,6 +503,28 @@ async function renderHistory() {
       </div>
     </div>`;
   }
+  // Click dreapta (sau apasare lunga pe telefon) pe o sesiune proprie: apare cosul rosu.
+  app.querySelectorAll('.session[data-own]').forEach((el) => {
+    el.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      app.querySelectorAll('.session.show-trash').forEach((x) => x.classList.remove('show-trash'));
+      el.classList.add('show-trash');
+    });
+    el.addEventListener('click', (e) => {
+      if (!e.target.closest('.trash-btn')) el.classList.remove('show-trash');
+    });
+  });
+  app.querySelectorAll('.trash-btn').forEach((b) => {
+    b.onclick = async (e) => {
+      e.stopPropagation();
+      if (!confirm(`Sigur ștergi sesiunea „${b.dataset.sname}”? Acțiunea nu poate fi anulată.`)) return;
+      try {
+        await api('/api/sessions/' + b.dataset.del, { method: 'DELETE' });
+        toast('Sesiune ștearsă');
+        route();
+      } catch (err) { toast(err.message); }
+    };
+  });
   $('#hSearch').oninput = (e) => {
     const q = e.target.value.toLowerCase();
     document.querySelectorAll('#hList .session').forEach((el) => (el.style.display = el.dataset.name.includes(q) ? '' : 'none'));
@@ -553,7 +558,7 @@ async function renderControl(id) {
     const isLast = s.questions.length > 0 && s.currentIndex === s.questions.length - 1;
     app.innerHTML = `
     <section>
-      <div class="row"><a href="#/sesiunile-mele" data-nav>← Sesiunile mele</a></div>
+      <div class="row"><a href="#/sesiunile-mele" data-nav>← Sesiuni active</a></div>
       <h2>Controlează: ${esc(s.name)} ${statusPill(s.status)}</h2>
       <div class="share-box">Cod votanți: <strong class="code-big" style="font-size:1.4rem">${esc(s.code)}</strong>
         <button class="btn btn-ghost btn-small" id="copyCode">Copiază codul</button>
@@ -618,7 +623,7 @@ function refreshHeader() {
   const badge = $('#userBadge');
   badge.hidden = !u;
   if (u) {
-    badge.innerHTML = `👤 ${esc(u.name)} • ${esc(u.email)}`;
+    badge.innerHTML = `👤 ${esc(u.email)}`;
     badge.title = 'Contul meu';
   }
   // Butonul "Intră cu email" se vede doar cand NU esti logat.
@@ -633,7 +638,7 @@ function openLoginModal() {
   const m = $('#loginModal');
   const pass = $('#loginPass'); if (pass) pass.value = '';
   m.hidden = false; m.style.display = 'flex';
-  setTimeout(() => { const el = $('#loginName'); if (el) el.focus(); }, 0);
+  setTimeout(() => { const el = $('#loginEmail'); if (el) el.focus(); }, 0);
 }
 function closeLoginModal() {
   const m = $('#loginModal');
@@ -644,7 +649,6 @@ function closeLoginModal() {
 function openAccountModal() {
   const u = getUser();
   if (!u) return;
-  $('#accName').textContent = u.name || '—';
   $('#accEmail').textContent = u.email || '—';
   const m = $('#accountModal');
   m.hidden = false; m.style.display = 'flex';
@@ -674,27 +678,25 @@ $('#closeLogin').onclick = closeLoginModal;
 // Click pe fundalul întunecat (în afara căsuței) închide modalul
 $('#loginModal').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeLoginModal(); });
 // Enter în oricare câmp = apasă pe „Intră”
-['loginName', 'loginEmail', 'loginPass'].forEach((id) => {
+['loginEmail', 'loginPass'].forEach((id) => {
   $('#' + id).addEventListener('keydown', (e) => { if (e.key === 'Enter') $('#doLogin').click(); });
 });
 $('#doLogin').onclick = async () => {
   const btn = $('#doLogin');
   const email = $('#loginEmail').value.trim();
-  const name = $('#loginName').value.trim();
   const password = $('#loginPass').value;
   if (!email || !email.includes('@')) return toast('Scrie o adresă de email validă.');
-  if (!name) return toast('Scrie și numele tău.');
   if (password.length < 6) return toast('Parola trebuie să aibă cel puțin 6 caractere.');
   btn.disabled = true; const label = btn.textContent; btn.textContent = 'Se conectează…';
   try {
-    const r = await api('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, name, password }) });
+    const r = await api('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
     localStorage.setItem('cabanavot_token', r.token);
     localStorage.setItem('cabanavot_user', JSON.stringify(r.user));
     closeLoginModal();
     refreshHeader();
-    toast(r.created ? 'Cont creat! Bun venit, ' + r.user.name + '!'
-      : r.passwordSet ? 'Parolă setată. Bun venit, ' + r.user.name + '!'
-      : 'Bun venit înapoi, ' + r.user.name + '!');
+    toast(r.created ? 'Cont creat! Bun venit!'
+      : r.passwordSet ? 'Parolă setată. Bun venit!'
+      : 'Bun venit înapoi!');
     // Primul lucru după login: pagina de pornire „Bine ai venit la AG".
     if (location.hash !== '#/') location.hash = '#/';
     else route();

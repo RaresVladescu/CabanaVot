@@ -87,13 +87,12 @@ a{color:var(--mov)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 
 /* Hero */
-.hero{display:grid;grid-template-columns:1.2fr .8fr;gap:22px;align-items:stretch;margin:26px 0}
+.hero{display:block;margin:26px 0}
 .hero-card{background:linear-gradient(135deg,var(--mov),#1E3AA8 55%,var(--albastru));color:#fff;border-radius:22px;padding:30px;box-shadow:var(--shadow);position:relative;overflow:hidden}
 .hero-card::after{content:"";position:absolute;right:-40px;top:-40px;width:200px;height:200px;background:rgba(209,200,133,.35);border-radius:50%}
 .hero-card h1{margin:0 0 10px;font-size:2.1rem;line-height:1.1}
 .hero-card p{opacity:.92}
 .hero-cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
-.hero-side{display:flex;flex-direction:column;gap:14px}
 .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;border:1px solid #eee}
 .card h2,.card h3{margin-top:0;color:var(--mov)}
 .code-big{font-size:2rem;font-weight:900;letter-spacing:4px;color:var(--mov);background:var(--bej-deschis);border:2px dashed var(--mov);border-radius:14px;padding:10px;text-align:center}
@@ -128,10 +127,19 @@ body.dragging-active{cursor:grabbing;user-select:none}
 .icon-btn:hover{background:var(--mov);color:#fff;border-color:var(--mov)}
 
 /* Liste sesiuni / istoric */
-.session{border-radius:var(--radius);background:#fff;box-shadow:var(--shadow);margin:12px 0;overflow:hidden;border:1px solid #eee}
+.session{border-radius:var(--radius);background:#fff;box-shadow:var(--shadow);margin:12px 0;overflow:hidden;border:1px solid #eee;position:relative}
 .session-head{width:100%;text-align:left;background:#fff;border:none;padding:16px 18px;cursor:pointer;display:flex;gap:12px;align-items:center;justify-content:space-between;font:inherit}
 .session-head:hover{background:#FBFAF2}
 .session-head .sname{font-weight:900;color:var(--mov);font-size:1.05rem}
+/* Sesiunile proprii din Istoric au loc pentru cosul de gunoi (apare la click dreapta). */
+.session[data-own] .session-head{padding-right:60px}
+.trash-btn{position:absolute;top:10px;right:10px;z-index:2;width:38px;height:38px;border-radius:50%;border:2px solid var(--danger);background:#fff;color:var(--danger);font-size:1.05rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .15s ease;box-shadow:var(--shadow)}
+.session.show-trash .trash-btn{opacity:1;pointer-events:auto}
+.trash-btn:hover{background:var(--danger);color:#fff}
+/* Pe telefon nu exista click dreapta: cosul se vede mereu, ca sa fie intuitiv. */
+@media (hover:none),(pointer:coarse){
+  .session[data-own] .trash-btn{opacity:1;pointer-events:auto}
+}
 .pill{font-size:.75rem;font-weight:900;padding:5px 11px;border-radius:999px;white-space:nowrap}
 .pill.draft{background:#E5E7EB;color:#374151}
 .pill.live{background:#DCFCE7;color:#166534;border:1.5px solid #16A34A}
@@ -177,18 +185,16 @@ body.dragging-active{cursor:grabbing;user-select:none}
 .footer-inner{display:flex;justify-content:space-between;gap:14px;padding:20px 0 20px 18px;flex-wrap:wrap;align-items:flex-end}
 .footer-brand{display:flex;align-items:center;gap:12px}
 .footer-brand img{display:block}
-/* Support in subsol: trei rânduri — Support / telefon: / email: */
+/* Support in subsol: trei rânduri — Support / telefon: / email:.
+   Pe ecranele late (>=861px) blocul stă lipit de marginea din dreapta, la 2 cm de ea. */
 .footer-support{display:flex;flex-direction:column;gap:2px;align-items:flex-start;font-weight:600}
 .footer-support strong{color:var(--mov)}
 .footer-support a{color:var(--text);text-decoration:none;font-weight:700}
 .footer-support a:hover{color:var(--mov);text-decoration:underline}
-/* Semnatura, in dreapta jos, langa blocul de Support. Pe ecranele late (>=861px),
-   grupul Support + semnatura e lipit de marginea din dreapta a paginii. */
 .footer-right{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
-.footer-sign{height:34.5px;width:auto;display:block}
 @media(min-width:861px){
   .footer{position:relative}
-  .footer-right{position:absolute;right:8px;bottom:16px}
+  .footer-right{position:absolute;right:84px;bottom:16px}
 }
 .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}
 .step{background:#fff;border-radius:14px;padding:14px;border:1.5px solid rgba(0,0,128,.25)}

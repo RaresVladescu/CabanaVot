@@ -5,6 +5,18 @@ cu design după Manualul de identitate vizuală Cabana Scout v3.0
 (albastru `#0099FF`, bej `#D1C885`, mov închis `#000080`, font Red Hat Display,
 logo oficial extras din manual în `public/logo.png`).
 
+## Actualizări v1.6 (27 oct 2026) — curățenie pe ecrane + cont fără nume
+
+- 🏠 Pagina acasă a fost simplificată: hero-ul scrie doar **„Vot anonim"**; au dispărut textul de prezentare, caseta „Intră rapid cu cod", secțiunea „De ce CabanaVot?" și mențiunea „model inspirat de…".
+- 🧭 În antet, „Sesiunile mele" se numește acum **„Sesiuni active"**; butonul „+ Creează vot" din bara de sus a fost scos (rămân butoanele din pagină).
+- 👤 Login-ul nu mai cere nume: contul se face doar cu **email + parolă**, iar numele se derivă automat din email. Te poți loga de pe orice telefon și îți vezi istoricul.
+- 🗑️ **Ștergere din Istoric**: click dreapta pe o sesiune proprie (sau apăsare lungă pe telefon) arată un **coș roșu**; pe telefon coșul e vizibil mereu. Cere confirmare înainte de ștergere.
+- 🗳️ Pagina „Votează cu cod" are între titlu și căsuță doar textul **„Votul tău e anonim."**
+- 🧹 Au dispărut exemplele din paranteze („ex: …") din toate câmpurile și textele.
+- 📱 Meniul cu 3 liniuțe se închide automat după ce alegi o pagină.
+- ✍️ Semnătura a fost scoasă din footer; blocul **Support** a fost mutat 2 cm spre stânga.
+- 🧾 Footer-ul nu mai spune „platformă de vot pentru Centrul Local Cabana Scout"; sub „Istoric sesiuni" nu mai apare textul explicativ.
+
 ## Actualizări v1.5 (27 oct 2026) — mutare pe Netlify
 
 - ☁️ **Site-ul rulează acum pe Netlify**, la **https://vot.cabanascout.ro**, cu deploy automat din GitHub.
@@ -134,11 +146,11 @@ Cum funcționează (pe scurt):
 
 1. Intră pe GitHub în repository-ul `cabanavot` → **Add file → Upload files**.
 2. Trage fișierele modificate (păstrează structura folderelor!):
-   - `public/index.html`, `public/styles.css`, `public/app.js`, `public/logo.png`, `public/semnatura.png`
+   - `public/index.html`, `public/styles.css`, `public/app.js`
    - `server.js`, `lib/api.js`, `lib/file-store.js`, `lib/blobs-store.mjs`, `netlify/functions/api.mjs`, `netlify.toml`, `package.json`, `package-lock.json`
 3. Apasă **Commit changes**. Netlify detectează commit-ul și redeploy-ază automat (~1 minut).
 4. Deschide site-ul cu un **refresh complet** (Ctrl+F5 pe Windows, sau închide/reia tab-ul pe telefon).
-   Fișierele au `?v=13` în nume, deci browserul ia imediat versiunea nouă.
+   Fișierele au `?v=14` în nume, deci browserul ia imediat versiunea nouă.
 
 > ✅ **Datele NU se pierd la redeploy**: voturile stau în Netlify Blobs, nu pe discul serverului.
 > Poți face deploy liniștit și în timpul unui vot.
