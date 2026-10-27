@@ -28,11 +28,19 @@
 html,body{margin:0;padding:0}
 body{
   font-family:"Red Hat Display",Helvetica,Arial,sans-serif;
-  background:var(--bg);
   color:var(--text);
+  /* Layer 0: peisaj montan cu iarbă și zăpadă ( foto Unsplash ), atenuat cu un voal bej
+     ca textele să rămână lizibile. */
+  background-color:var(--bg);
   background-image:
-    radial-gradient(circle at 10% 0%, rgba(0,153,255,.12), transparent 40%),
-    radial-gradient(circle at 95% 15%, rgba(209,200,133,.35), transparent 45%);
+    radial-gradient(circle at 10% 0%, rgba(0,153,255,.10), transparent 40%),
+    radial-gradient(circle at 95% 15%, rgba(209,200,133,.28), transparent 45%),
+    linear-gradient(180deg, rgba(250,248,239,.68), rgba(250,248,239,.80)),
+    url("fundal.jpg");
+  background-size:auto, auto, cover, cover;
+  background-position:0 0, 0 0, center, center;
+  background-repeat:no-repeat;
+  background-attachment:scroll, scroll, fixed, fixed;
   min-height:100vh;
   /* Coloana flexibila: continutul creste si impinge footer-ul mereu la baza
      paginii, chiar si pe paginile scurte (ex: „Voteaza cu cod"). */
@@ -45,7 +53,7 @@ body{
 /* Partea principala ocupa spatiul ramas, ca footer-ul sa fie lipit jos. */
 #app{flex:1 0 auto}
 img{max-width:100%;height:auto}
-.wrap{max-width:1080px;margin:0 auto;padding:0 18px}
+.wrap{max-width:1080px;width:100%;margin:0 auto;padding:0 18px}
 a{color:var(--mov)}
 .muted{color:var(--muted)}
 .tiny{font-size:.82rem}
@@ -68,21 +76,26 @@ a{color:var(--mov)}
    Textul prea lung se taie cu „…" ca sa nu rupa pagina pe telefon. */
 .user-badge{background:var(--bej-deschis);border:1.5px solid var(--bej);padding:7px 12px;border-radius:999px;font:inherit;font-weight:700;font-size:.85rem;cursor:pointer;max-width:min(340px,62vw);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .user-badge:hover{border-color:var(--mov)}
-.hamburger{display:none;border:1px solid #ddd;background:#fff;border-radius:10px;padding:8px 11px;font-size:1.1rem}
+.hamburger{display:none;border:1px solid #ddd;background:#fff;border-radius:10px;padding:8px 11px;font-size:1.1rem;cursor:pointer;transition:background-color .14s ease,border-color .14s ease}
+.hamburger:hover{background:var(--bej-deschis);border-color:var(--mov);color:var(--mov)}
 
 /* Butoane */
-.btn{border:none;cursor:pointer;font:inherit;font-weight:800;padding:11px 18px;border-radius:999px;text-decoration:none;display:inline-block;transition:transform .06s ease}
-.btn:active{transform:scale(.97)}
+.btn{border:none;cursor:pointer;font:inherit;font-weight:800;padding:11px 18px;border-radius:999px;text-decoration:none;display:inline-block;transition:transform .14s ease, background-color .14s ease, color .14s ease, border-color .14s ease, box-shadow .14s ease}
+.btn:not(:disabled):hover{transform:translateY(-1px) scale(1.03)}
+.btn:not(:disabled):active{transform:scale(.97)}
 .btn-primary{background:var(--albastru);color:#fff;box-shadow:0 6px 16px rgba(0,153,255,.35)}
 .btn-primary:hover{background:var(--albastru-inchis)}
 .btn-dark{background:var(--mov);color:#fff}
+.btn-dark:hover{background:#000060}
 .btn-bej{background:var(--bej);color:var(--mov)}
+.btn-bej:hover{background:#C6BC6E;color:var(--mov)}
 .btn-ghost{background:#fff;color:var(--mov);border:2px solid var(--mov)}
 /* Butoanele albe cu scris: la hover se coloreaza cu movul inchis (ca butoanele din header). */
 .btn-ghost:hover{background:var(--mov);color:#fff;border-color:var(--mov)}
 .btn-subtle{background:#fff;color:var(--muted);border:1.5px solid rgba(0,0,128,.35);font-weight:700;padding:5px 11px;font-size:.8rem}
 .btn-subtle:hover{background:var(--mov);color:#fff;border-color:var(--mov)}
 .btn-danger{background:#fff;color:var(--danger);border:2px solid var(--danger)}
+.btn-danger:hover{background:var(--danger);color:#fff}
 .btn-small{padding:7px 12px;font-size:.86rem}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 
@@ -111,14 +124,17 @@ label{display:flex;flex-direction:column;gap:6px;font-weight:700;margin:10px 0}
 .quorum-result{font-weight:900;color:var(--mov);background:var(--bej-deschis);padding:8px 12px;border-radius:10px;display:inline-block;margin-top:8px}
 
 /* Intrebari / optiuni */
-.qblock{border:2px solid rgba(0,0,128,.35);border-radius:14px;padding:14px;margin:12px 0;background:#FFFDF4}
+.qblock{border:2px solid rgba(0,0,128,.35);border-radius:14px;padding:14px;margin:12px 0;background:#FFFDF4;cursor:grab}
 .qhead{display:flex;gap:8px;align-items:center}
 .qhead input{flex:1;min-width:0}
-.qhead strong{cursor:grab}
+.qblock input[type=text],.qblock input[type=number]{cursor:text}
+.qblock input[type=color],.qblock button{cursor:pointer}
 /* Manerul de mutare a intrebarii (⠿): tine apasat si trage. touch-action:none = merge si pe telefon. */
 .drag-handle{cursor:grab;touch-action:none;user-select:none;color:var(--muted);font-size:1.15rem;line-height:1;padding:4px 2px;border-radius:8px}
-.drag-handle:hover{color:var(--mov)}
-.qblock.dragging{opacity:.6;border-color:var(--mov);box-shadow:var(--shadow)}
+.drag-handle:hover,.drag-handle:active{color:var(--mov)}
+.qblock.dragging{opacity:.28;border-style:dashed;border-color:var(--mov);box-shadow:none;cursor:grabbing}
+/* Copia care pluteste sub deget/mouse in timp ce muti intrebarea: iese in relief si acopera celelalte. */
+.drag-ghost{position:fixed;margin:0;z-index:9999;pointer-events:none;background:#FFFDF4;border:2px solid var(--mov);border-radius:14px;box-shadow:0 26px 60px rgba(0,0,128,.38);transform-origin:center;overflow:hidden;opacity:.99;will-change:transform;cursor:grabbing}
 body.dragging-active{cursor:grabbing;user-select:none}
 .opt-row{display:flex;gap:8px;align-items:center;margin:8px 0}
 .opt-row input[type=text]{flex:1;min-width:0}
@@ -150,6 +166,14 @@ body.dragging-active{cursor:grabbing;user-select:none}
 .qitem>button:hover{background:var(--mov);color:#fff}
 .qitem .qdetail{padding:12px 14px;border-top:1px dashed rgba(0,0,128,.30)}
 
+/* Istoric: pagina și bara de căutare mult mai late, ca să nu pară înghesuite. */
+.history-page{width:min(1320px,calc(100vw - 32px));margin-left:50%;transform:translateX(-50%)}
+.history-page #hSearch{width:100%;font-size:1.05rem;padding:14px 16px;border-radius:14px}
+.history-page #hList{font-size:1.02rem}
+@media(max-width:860px){
+  .history-page{width:auto;margin-left:0;transform:none}
+}
+
 /* Bare de rezultate colorate */
 .bar-row{display:grid;grid-template-columns:1fr auto;gap:4px 10px;margin:10px 0;align-items:center}
 .bar-label{font-weight:700}
@@ -167,8 +191,8 @@ body.dragging-active{cursor:grabbing;user-select:none}
 .tree-actions{margin:6px 0 10px}
 .current-card{background:linear-gradient(180deg,#fff, #F6F9FF);border:2.5px solid var(--mov)}
 .current-title{font-size:1.5rem;color:var(--mov)}
-.vote-btn{display:block;width:100%;text-align:left;margin:10px 0;padding:15px 16px;border-radius:14px;border:2.5px solid rgba(0,0,128,.30);background:#fff;font:inherit;font-weight:800;cursor:pointer}
-.vote-btn:hover:not(:disabled){border-color:var(--mov)}
+.vote-btn{display:block;width:100%;text-align:left;margin:10px 0;padding:15px 16px;border-radius:14px;border:2.5px solid rgba(0,0,128,.30);background:#fff;font:inherit;font-weight:800;cursor:pointer;transition:border-color .14s ease,transform .14s ease,box-shadow .14s ease}
+.vote-btn:hover:not(:disabled){border-color:var(--mov);transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,128,.12)}
 .vote-btn.selected{border-color:var(--mov);background:var(--bej-deschis)}
 /* Dupa ce a votat, butoanele sunt blocate: votul nu mai poate fi schimbat. */
 .vote-btn:disabled{cursor:default;opacity:.85}
@@ -186,7 +210,7 @@ body.dragging-active{cursor:grabbing;user-select:none}
 .footer-brand{display:flex;align-items:center;gap:12px}
 .footer-brand img{display:block}
 /* Support in subsol: trei rânduri — Support / telefon: / email:.
-   Pe ecranele late (>=861px) blocul stă lipit de marginea din dreapta, la 2 cm de ea. */
+   Pe ecranele late (>=861px) blocul stă lipit de marginea din dreapta, cu 2 cm mai la stânga. */
 .footer-support{display:flex;flex-direction:column;gap:2px;align-items:flex-start;font-weight:600}
 .footer-support strong{color:var(--mov)}
 .footer-support a{color:var(--text);text-decoration:none;font-weight:700}
@@ -194,7 +218,7 @@ body.dragging-active{cursor:grabbing;user-select:none}
 .footer-right{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
 @media(min-width:861px){
   .footer{position:relative}
-  .footer-right{position:absolute;right:84px;bottom:16px}
+  .footer-right{position:absolute;right:160px;bottom:16px}
 }
 .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}
 .step{background:#fff;border-radius:14px;padding:14px;border:1.5px solid rgba(0,0,128,.25)}

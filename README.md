@@ -5,6 +5,20 @@ cu design după Manualul de identitate vizuală Cabana Scout v3.0
 (albastru `#0099FF`, bej `#D1C885`, mov închis `#000080`, font Red Hat Display,
 logo oficial extras din manual în `public/logo.png`).
 
+## Actualizări v1.7 (28 oct 2026) — cvorum, drag & drop și fundal montan
+
+- ⚖️ **Cvorumul** se calculează prin rotunjire în sus (2/3 din votanți; ex. 24,3 → 25). Sub checkbox a rămas doar „Am nevoie de cvorum 2/3", iar după bifare apare scurt **„Cvorumul este X (2/3 din N cu drept de vot)"**.
+- 🏷️ Pagina de creare: au dispărut textul explicativ de sub titlu și eticheta de deasupra căsuței de nume (rămâne placeholder-ul).
+- 🖱️ **Mutarea întrebărilor e mai interactivă**: poți apuca întrebarea de oriunde (nu doar de mâner), aceasta se ridică în relief și urmărește mouse-ul; când acoperă 55% din altă întrebare, locurile fac schimb, iar la eliberare rămâne pe poziția nouă. Nu mai apar etichetele „Întrebarea 1/2".
+- 🧭 Blocul **Support** din footer a fost mutat încă 2 cm spre stânga.
+- 🔎 **Istoric**: bara de căutare și lista sunt mult mai late, cu text ceva mai mare.
+- ✨ Toate butoanele au acum efect la hover (se colorează sau se măresc puțin); butoanele din hero se măresc discret.
+- 🔢 Rotița mouse-ului nu mai modifică numărul din câmpul „persoane cu drept de vot" — valoarea se schimbă doar de la tastatură.
+- 🧹 Au dispărut textele explicative din „Sesiuni active" (inclusiv paranteza cu sesiunile închise) și din panoul „Toată sesiunea"; „Creează prima" a devenit **„Creează una"**. Din bara de sus a controlului live a dispărut îndemnul „Trimite codul/linkul votanților…".
+- ❓ Emoji-urile cu semn de întrebare din Istoric au fost înlocuite cu bullet point-uri; cuvântul „indicativ" a fost eliminat.
+- 🏔️ **Fundal nou**: pe tot site-ul, în layer-ul 0, o fotografie cu peisaj montan (iarbă, zăpadă, cer albastru), atenuată cu un voal bej ca textele să rămână lizibile. Fotografie: Unsplash.
+- 🧽 A fost scoasă secțiunea „Cum funcționează?" de pe pagina acasă.
+
 ## Actualizări v1.6 (27 oct 2026) — curățenie pe ecrane + cont fără nume
 
 - 🏠 Pagina acasă a fost simplificată: hero-ul scrie doar **„Vot anonim"**; au dispărut textul de prezentare, caseta „Intră rapid cu cod", secțiunea „De ce CabanaVot?" și mențiunea „model inspirat de…".

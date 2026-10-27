@@ -47,7 +47,7 @@ function quorumBox(s) {
   if (!s.quorumEnabled) return ''; // daca nu e pornit, nu scriem nimic despre el
   const need = s.quorumNeeded ?? Math.ceil((s.totalEligible * 2) / 3);
   const ok = s.registered >= need;
-  return `<div class="quorum-box">Cvorumul este <strong>${need} persoane</strong> (2/3 din ${s.totalEligible || '?'} cu drept de vot). Înregistrate: <strong>${s.registered}</strong> — ${ok ? '✅ cvorum atins (indicativ)' : '⏳ cvorum neatins (indicativ, votul continuă oricum)'}.</div>`;
+  return `<div class="quorum-box">Cvorumul este <strong>${need} persoane</strong> (2/3 din ${s.totalEligible || '?'} cu drept de vot). Înregistrate: <strong>${s.registered}</strong> — ${ok ? '✅ cvorum atins' : '⏳ cvorum neatins (votul continuă oricum)'}.</div>`;
 }
 
 function barsHTML(question) {
@@ -114,16 +114,8 @@ async function renderHome() {
       <h1>Vot anonim</h1>
       <div class="hero-cta">
         <a class="btn btn-bej" href="#/creeaza" data-nav>+ Creează vot</a>
-        <a class="btn btn-ghost" style="background:#fff" href="#/voteaza" data-nav>Votează cu cod</a>
+        <a class="btn btn-ghost" href="#/voteaza" data-nav>Votează cu cod</a>
       </div>
-    </div>
-  </section>
-  <section class="card">
-    <h2>Cum funcționează? (3 pași)</h2>
-    <div class="steps">
-      <div class="step"><b>1. Creezi sesiunea</b><br/>Creezi o sesiune, adaugi întrebări și gata AG-ul într-o oră.</div>
-      <div class="step"><b>2. Pornești live</b><br/>Proiectezi codul. Votanții intră de pe telefon și votează întrebarea curentă.</div>
-      <div class="step"><b>3. Vezi rezultate + istoric</b><br/>Bare colorate live, cvorum indicativ, iar la final totul rămâne în Istoric, extensibil pe sesiuni.</div>
     </div>
   </section>
   ${last.length ? `<section class="card"><h2>Ultimele sesiuni din istoric</h2>${last.map(sessionCardMini).join('')}<p><a href="#/istoric" data-nav>Vezi tot istoricul →</a></p></section>` : ''}`;
@@ -190,7 +182,7 @@ async function joinSession(code) {
       const voted = c.myVote != null;
       area.innerHTML = `
         <h3>${esc(s.name)} <span class="tiny muted">• întrebarea ${(s.currentIndex ?? 0) + 1} din ${s.questionsCount}</span></h3>
-        ${s.quorumEnabled ? `<p class="tiny muted">Cvorum 2/3: înregistrați ${s.registered} din necesarul ${s.quorumNeeded} (indicativ).</p>` : ''}
+        ${s.quorumEnabled ? `<p class="tiny muted">Cvorum 2/3: înregistrați ${s.registered} din necesarul ${s.quorumNeeded}.</p>` : ''}
         <p class="current-title">${esc(c.title)}</p>
         ${c.options.map((o, i) => `<button class="vote-btn ${c.myVote === i ? 'selected' : ''}" data-i="${i}" ${voted ? 'disabled' : ''}><span class="dot" style="background:${esc(o.color)}"></span> ${esc(o.text)} ${c.myVote === i ? '✓ (votul tău)' : ''}</button>`).join('')}
         <p class="tiny muted">${voted
@@ -221,7 +213,6 @@ function questionBlock(q = { title: '', options: [{ text: '', color: PALETTE[0] 
   return `<div class="qblock" data-q="${qi}">
     <div class="qhead">
       <span class="drag-handle" title="Ține apăsat și trage ca să muți întrebarea">⠿</span>
-      <strong>Întrebarea ${qi + 1}</strong>
       <input type="text" class="qtitle" placeholder="Scrie întrebarea" value="${esc(q.title)}" autocomplete="off" data-lpignore="true" data-1p-ignore data-form-type="other" />
       <button type="button" class="icon-btn del-q" title="Șterge întrebarea">✕</button>
     </div>
@@ -270,7 +261,7 @@ function wireForm(areaId, onReorder) {
     }
   });
   function renumber() {
-    document.querySelectorAll('.qblock').forEach((qb, i) => { qb.dataset.q = i; qb.querySelector('strong').textContent = 'Întrebarea ' + (i + 1); });
+    document.querySelectorAll('.qblock').forEach((qb, i) => { qb.dataset.q = i; });
   }
   $('#addQ').onclick = () => {
     const n = document.querySelectorAll('.qblock').length;
@@ -283,8 +274,9 @@ function wireForm(areaId, onReorder) {
   $('#fTotal').oninput = updateQuorumHint;
   function updateQuorumHint() {
     const t = Number($('#fTotal').value);
-    $('#quorumHint').textContent = t > 0 ? `Vor trebui să fie înregistrate cel puțin ${Math.ceil((t * 2) / 3)} persoane (2/3 din ${t}). E doar o indicație — votul pornește oricum.` : 'Scrie numărul total de persoane cu drept de vot.';
+    $('#quorumHint').textContent = t > 0 ? `Cvorumul este ${Math.ceil((t * 2) / 3)} (2/3 din ${t} cu drept de vot).` : 'Scrie numărul total de persoane cu drept de vot.';
   }
+  if ($('#fTotal') && $('#fTotal').value) updateQuorumHint();
 
   // ---------- Sageata sus/jos = muta cursorul in casuta urmatoare / de mai sus ----------
   // Exemplu: scrii titlul intrebarii 1, apesi sageata jos si mergi direct la prima varianta.
@@ -298,22 +290,24 @@ function wireForm(areaId, onReorder) {
     if (next) { e.preventDefault(); next.focus(); }
   });
 
-  // ---------- Mutarea intrebarilor: tine apasat si trage (merge si pe telefon) ----------
-  // Tine apasat pe manerul ⠿ din capul intrebarii (sau pe zona goala a intrebarii),
-  // misca degetul/pointerul peste alta intrebare si elibereaza ca sa o muti.
-  let drag = null; // intrebarea care e trasa acum
-  let pre = null;  // ascultatorii timer-ului de dinainte de „pornire"
-  const blockScroll = (ev) => ev.preventDefault(); // pe telefon: nu lasa pagina sa deruleze cand tragi
+  // ---------- Mutarea întrebărilor: apasă și ține apăsat, apoi trage (merge și pe telefon) ----------
+  // Poți apuca întrebarea de oriunde (mai puțin din casetele de text / butoane).
+  // Cât timp o miști, o copie „în relief" plutește peste celelalte întrebări; când
+  // acoperă 55% din altă întrebare, locurile fac schimb, iar la eliberare rămâne acolo.
+  let drag = null;
+  let pre = null;
+  const blockScroll = (ev) => ev.preventDefault();
 
   area.addEventListener('pointerdown', (e) => {
-    if (e.button != null && e.button > 0) return; // doar click stanga
+    if (e.button != null && e.button > 0) return; // doar click stânga
     const qb = e.target.closest('.qblock');
     if (!qb || !area.contains(qb)) return;
+    if (e.target.closest('input,select,textarea,button,label,a')) return; // nu porni drag din câmpuri/butoane
+    if (pre) pre(); // dacă era deja un „apasă și ține" început, îl anulăm
     const onHandle = !!e.target.closest('.drag-handle');
-    if (!onHandle && e.target.closest('input,select,textarea,button,label')) return; // nu intru peste scris/butoane
     const startX = e.clientX, startY = e.clientY, pid = e.pointerId;
-    const timer = setTimeout(() => { cleanupPre(); beginDrag(qb, pid); }, onHandle ? 0 : (e.pointerType === 'mouse' ? 160 : 420));
-    const onMove = (ev) => { if (Math.hypot(ev.clientX - startX, ev.clientY - startY) > 10) cleanupPre(); }; // se misca = deruleaza/selecteaza, nu trage
+    const timer = setTimeout(() => { cleanupPre(); beginDrag(qb, pid, e); }, onHandle ? 0 : (e.pointerType === 'mouse' ? 140 : 320));
+    const onMove = (ev) => { if (Math.hypot(ev.clientX - startX, ev.clientY - startY) > 10) cleanupPre(); };
     const onUp = () => cleanupPre();
     function cleanupPre() {
       clearTimeout(timer);
@@ -328,8 +322,23 @@ function wireForm(areaId, onReorder) {
     window.addEventListener('pointercancel', onUp);
   });
 
-  function beginDrag(qb, pid) {
-    drag = { qb, pid, order: [...area.querySelectorAll('.qblock')] };
+  function beginDrag(qb, pid, ev) {
+    // copiem valorile curente în atribute, ca să arate la fel și în copia care plutește
+    qb.querySelectorAll('input').forEach((inp) => {
+      if (inp.type === 'checkbox' || inp.type === 'radio') inp.toggleAttribute('checked', inp.checked);
+      else inp.setAttribute('value', inp.value);
+    });
+    const rect = qb.getBoundingClientRect();
+    const ghost = qb.cloneNode(true);
+    ghost.classList.add('drag-ghost');
+    ghost.classList.remove('dragging');
+    ghost.style.left = rect.left + 'px';
+    ghost.style.top = rect.top + 'px';
+    ghost.style.width = rect.width + 'px';
+    ghost.style.height = rect.height + 'px';
+    document.body.appendChild(ghost);
+
+    drag = { qb, pid, ghost, startX: ev.clientX, startY: ev.clientY, order: [...area.querySelectorAll('.qblock')], lockUntil: 0 };
     qb.classList.add('dragging');
     document.body.classList.add('dragging-active');
     document.addEventListener('touchmove', blockScroll, { passive: false });
@@ -338,34 +347,49 @@ function wireForm(areaId, onReorder) {
     window.addEventListener('pointercancel', endDrag);
     try { qb.setPointerCapture(pid); } catch {}
   }
+
   function onDragMove(ev) {
     if (!drag || ev.pointerId !== drag.pid) return;
-    const x = ev.clientX, y = ev.clientY;
-    for (const t of area.querySelectorAll('.qblock')) {
-      if (t === drag.qb) continue;
-      const r = t.getBoundingClientRect();
-      if (x < r.left || x > r.right || y < r.top || y > r.bottom) continue;
-      const before = y < r.top + r.height / 2;
-      if (before && drag.qb.nextElementSibling !== t) t.parentNode.insertBefore(drag.qb, t);
-      else if (!before && t.nextElementSibling !== drag.qb) t.parentNode.insertBefore(drag.qb, t.nextElementSibling);
-      break;
-    }
+    const dx = ev.clientX - drag.startX;
+    const dy = ev.clientY - drag.startY;
+    drag.ghost.style.transform = `translate(${dx}px, ${dy}px) scale(1.02) rotate(.4deg)`;
+
+    if (performance.now() < drag.lockUntil) return;
+    const el = document.elementFromPoint(ev.clientX, ev.clientY);
+    const target = el && el.closest ? el.closest('.qblock') : null;
+    if (!target || target === drag.qb || !area.contains(target)) return;
+
+    const tr = target.getBoundingClientRect();
+    const gr = drag.ghost.getBoundingClientRect();
+    const ix = Math.max(0, Math.min(gr.right, tr.right) - Math.max(gr.left, tr.left));
+    const iy = Math.max(0, Math.min(gr.bottom, tr.bottom) - Math.max(gr.top, tr.top));
+    const coverage = (ix * iy) / (tr.width * tr.height || 1);
+    if (coverage < 0.55) return; // sub 55% acoperit: nu schimba locurile
+
+    const after = ev.clientY > tr.top + tr.height / 2;
+    const already = after ? drag.qb.previousElementSibling === target : drag.qb.nextElementSibling === target;
+    if (already) return;
+    if (after) target.parentNode.insertBefore(drag.qb, target.nextElementSibling);
+    else target.parentNode.insertBefore(drag.qb, target);
+    drag.lockUntil = performance.now() + 220; // mică pauză, ca să nu oscileze între două locuri
   }
+
   function endDrag(ev) {
     if (!drag || (ev && ev.pointerId !== undefined && ev.pointerId !== drag.pid)) return;
+    drag.ghost.remove();
     drag.qb.classList.remove('dragging');
     document.body.classList.remove('dragging-active');
     document.removeEventListener('touchmove', blockScroll, { passive: false });
     window.removeEventListener('pointermove', onDragMove);
     window.removeEventListener('pointerup', endDrag);
     window.removeEventListener('pointercancel', endDrag);
-    // am schimbat ordinea? daca nu, nu facem nimic (un simplu click pe maner nu salveaza degeaba)
+    // am schimbat ordinea? dacă nu, nu facem nimic (un simplu click pe mâner nu salvează degeaba)
     const now = [...area.querySelectorAll('.qblock')];
     const changed = now.length !== drag.order.length || now.some((el, i) => el !== drag.order[i]);
     drag = null;
     if (changed) {
       renumber();
-      if (typeof onReorder === 'function') onReorder(); // la editare: salvam noua ordine
+      if (typeof onReorder === 'function') onReorder(); // la editare: salvăm noua ordine
     }
   }
 }
@@ -379,9 +403,8 @@ async function renderCreate() {
   app.innerHTML = `
   <section class="card">
     <h2>Creează sesiune de vot</h2>
-    <p class="muted">O sesiune are un nume și mai multe întrebări. Codul pentru votanți se generează <strong>automat</strong>.</p>
-    <label>Numele sesiunii<input id="fName" type="text" placeholder="Numele sesiunii" /></label>
-    <div class="checkline"><input id="fQuorum" type="checkbox" /><div><strong>Am nevoie de cvorum 2/3</strong><br/><span class="muted">Dacă bifezi, se deschide un câmp unde scrii câte persoane au drept de vot, iar site-ul calculează câte trebuie să fie înregistrate. E doar o indicație — votul poate începe oricum.</span></div></div>
+    <input id="fName" type="text" placeholder="Numele sesiunii" aria-label="Numele sesiunii" style="margin:12px 0" />
+    <div class="checkline"><input id="fQuorum" type="checkbox" /><div><strong>Am nevoie de cvorum 2/3</strong></div></div>
     <div id="quorumFields" hidden><label>Câte persoane au drept de vot?<input id="fTotal" type="number" min="1" /></label><span class="quorum-result" id="quorumHint"></span></div>
     <h3>Întrebări + variante (fiecare variantă poate avea culoarea ei)</h3>
     <div id="qList">${questionBlock(undefined, 0)}</div>
@@ -408,11 +431,11 @@ async function renderEdit(id) {
   <section class="card">
     <h2>Editează: ${esc(s.name)}</h2>
     <p class="muted">Doar tu (creatorul) poți modifica întrebările. Poți edita și în timp ce sesiunea e live.</p>
-    <label>Numele sesiunii<input id="fName" type="text" value="${esc(s.name)}" /></label>
+    <input id="fName" type="text" value="${esc(s.name)}" aria-label="Numele sesiunii" style="margin:12px 0" />
     <div class="checkline"><input id="fQuorum" type="checkbox" ${s.quorumEnabled ? 'checked' : ''} /><div><strong>Am nevoie de cvorum 2/3</strong></div></div>
     <div id="quorumFields" ${s.quorumEnabled ? '' : 'hidden'}><label>Persoane cu drept de vot<input id="fTotal" type="number" min="1" value="${esc(s.totalEligible || '')}" /></label><span class="quorum-result" id="quorumHint"></span></div>
     <div id="qList">${s.questions.map((q, i) => `<div class="qblock" data-q="${i}" data-qid="${q.id}">
-      <div class="qhead"><span class="drag-handle" title="Ține apăsat și trage ca să muți întrebarea">⠿</span><strong>Întrebarea ${i + 1}</strong><input type="text" class="qtitle" value="${esc(q.title)}" autocomplete="off" data-lpignore="true" data-1p-ignore data-form-type="other" /><button type="button" class="icon-btn del-q">✕</button></div>
+      <div class="qhead"><span class="drag-handle" title="Ține apăsat și trage ca să muți întrebarea">⠿</span><input type="text" class="qtitle" value="${esc(q.title)}" autocomplete="off" data-lpignore="true" data-1p-ignore data-form-type="other" /><button type="button" class="icon-btn del-q">✕</button></div>
       <div class="opts">${q.options.map((o) => `<div class="opt-row"><input type="color" class="ocolor" value="${esc(o.color)}" /><input type="text" class="otext" value="${esc(o.text)}" autocomplete="off" data-lpignore="true" data-1p-ignore data-form-type="other" /><button type="button" class="icon-btn del-opt">−</button></div>`).join('')}</div>
       <button type="button" class="btn btn-ghost btn-small add-opt">+ Adaugă variantă</button></div>`).join('')}</div>
     <div class="row"><button class="btn btn-ghost btn-small" id="addQ">+ Adaugă întrebare oriunde</button>
@@ -443,9 +466,7 @@ async function renderMine() {
   try { mine = await api('/api/sessions/mine'); } catch (e) { app.innerHTML = `<p>${esc(e.message)}</p>`; return; }
   // Sesiunile închise nu mai sunt active: nu se mai arată aici, doar în Istoric.
   const active = mine.filter((s) => s.status !== 'closed');
-  const closedCount = mine.length - active.length;
   app.innerHTML = `<section><h2>Sesiuni active</h2>
-  <p class="tiny muted">Aici apar sesiunile active (proiect sau live). Cele închise rămân în <a href="#/istoric" data-nav>Istoric</a>${closedCount ? ` (${closedCount} ${closedCount === 1 ? 'sesiune închisă' : 'sesiuni închise'})` : ''}.</p>
   ${active.length ? active.map((s) => `
     <div class="session">
       <div class="session-head" style="cursor:default">
@@ -464,7 +485,7 @@ async function renderMine() {
           <button class="btn btn-danger btn-small" data-del="${s.id}">Șterge</button>
         </div>
       </div>
-    </div>`).join('') : '<div class="card">N-ai nicio sesiune activă. <a href="#/creeaza" data-nav>Creează prima →</a></div>'}
+    </div>`).join('') : '<div class="card">N-ai nicio sesiune activă. <a href="#/creeaza" data-nav>Creează una →</a></div>'}
   </section>`;
   app.querySelectorAll('[data-copy]').forEach((b) => (b.onclick = () => { navigator.clipboard.writeText(b.dataset.copy); toast('Cod copiat: ' + b.dataset.copy); }));
   app.querySelectorAll('[data-link]').forEach((b) => (b.onclick = () => {
@@ -483,7 +504,7 @@ async function renderHistory() {
   let list = [];
   try { list = await api('/api/sessions'); } catch (e) { app.innerHTML = `<p>${esc(e.message)}</p>`; return; }
   const me = getUser();
-  app.innerHTML = `<section>
+  app.innerHTML = `<section class="history-page">
     <h2>Istoric sesiuni</h2>
     <input id="hSearch" type="text" placeholder="Caută sesiune..." />
     <div id="hList" style="margin-top:12px">${list.map((s) => historyItem(s, me)).join('') || '<div class="card">Nicio sesiune încă.</div>'}</div>
@@ -497,7 +518,7 @@ async function renderHistory() {
         ${quorumBox(s)}
         <p class="tiny muted">Creat de ${esc(s.ownerEmail)} • ${new Date(s.createdAt).toLocaleString('ro-RO')} • ${s.totalVotes} voturi totale</p>
         ${s.questions.map((q, i) => `<div class="qitem">
-          <button data-toggle>❓ ${i + 1}. ${esc(q.title)} <span class="tiny muted">(${q.total} voturi)</span></button>
+          <button data-toggle>• ${i + 1}. ${esc(q.title)} <span class="tiny muted">(${q.total} voturi)</span></button>
           <div class="qdetail" hidden>${barsHTML(q)}</div>
         </div>`).join('')}
       </div>
@@ -563,13 +584,11 @@ async function renderControl(id) {
       <div class="share-box">Cod votanți: <strong class="code-big" style="font-size:1.4rem">${esc(s.code)}</strong>
         <button class="btn btn-ghost btn-small" id="copyCode">Copiază codul</button>
         <button class="btn btn-ghost btn-small" id="copyLink">Copiază linkul</button>
-        <span class="tiny muted">Trimite codul/linkul votanților. Ei nu au nevoie de cont.</span>
       </div>
       ${quorumBox(s)}
       <div class="live-grid">
         <div class="tree">
           <strong>📋 Toată sesiunea</strong>
-          <p class="tiny muted">Apasă pe o întrebare ca să vezi variantele și câte voturi sunt. Întrebările extinse rămân extinse.</p>
           <div class="row tree-actions">
             <button class="btn btn-ghost btn-small btn-subtle" id="expandAll">Extinde toate întrebările</button>
             <button class="btn btn-ghost btn-small btn-subtle" id="collapseAll">Colapsează toate întrebările</button>
@@ -704,6 +723,11 @@ $('#doLogin').onclick = async () => {
   finally { btn.disabled = false; btn.textContent = label; const p = $('#loginPass'); if (p) p.value = ''; }
 };
 $('#hamburger').onclick = () => $('#mainNav').classList.toggle('open');
+
+// Rotița mouse-ului nu schimbă numărul din casetele numerice — doar tastatura.
+document.addEventListener('wheel', (e) => {
+  if (e.target instanceof HTMLInputElement && e.target.type === 'number') e.target.blur();
+}, { passive: true });
 
 refreshHeader();
 closeLoginModal(); // plasă de siguranță: modalurile pornesc închise chiar dacă CSS-ul e încă în cache
