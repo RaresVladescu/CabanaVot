@@ -69,15 +69,16 @@ a{color:var(--mov)}
 .brand-text strong{font-size:1.35rem;letter-spacing:.2px;color:var(--mov)}
 .brand-text small{color:var(--muted);font-weight:600;letter-spacing:.4px}
 .nav{display:flex;gap:6px;margin-left:12px;flex:1}
-.nav a{text-decoration:none;color:var(--text);font-weight:700;padding:9px 13px;border-radius:999px}
+.nav a{text-decoration:none;color:var(--text);font-weight:700;padding:9px 13px;border-radius:999px;transition:background-color .14s ease,color .14s ease,transform .14s ease}
 .nav a.active,.nav a:hover{background:var(--mov);color:#fff}
+.nav a:hover{transform:scale(1.04)}
 .topbar-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 /* Numele + emailul din bara de sus: se poate apasa (deschide „Contul meu").
    Textul prea lung se taie cu „…" ca sa nu rupa pagina pe telefon. */
-.user-badge{background:var(--bej-deschis);border:1.5px solid var(--bej);padding:7px 12px;border-radius:999px;font:inherit;font-weight:700;font-size:.85rem;cursor:pointer;max-width:min(340px,62vw);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.user-badge:hover{border-color:var(--mov)}
-.hamburger{display:none;border:1px solid #ddd;background:#fff;border-radius:10px;padding:8px 11px;font-size:1.1rem;cursor:pointer;transition:background-color .14s ease,border-color .14s ease}
-.hamburger:hover{background:var(--bej-deschis);border-color:var(--mov);color:var(--mov)}
+.user-badge{background:var(--bej-deschis);border:1.5px solid var(--bej);padding:7px 12px;border-radius:999px;font:inherit;font-weight:700;font-size:.85rem;cursor:pointer;max-width:min(340px,62vw);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:border-color .14s ease,transform .14s ease}
+.user-badge:hover{border-color:var(--mov);transform:scale(1.03)}
+.hamburger{display:none;border:1px solid #ddd;background:#fff;border-radius:10px;padding:8px 11px;font-size:1.1rem;cursor:pointer;transition:background-color .14s ease,border-color .14s ease,color .14s ease,transform .14s ease}
+.hamburger:hover{background:var(--bej-deschis);border-color:var(--mov);color:var(--mov);transform:scale(1.05)}
 
 /* Butoane */
 .btn{border:none;cursor:pointer;font:inherit;font-weight:800;padding:11px 18px;border-radius:999px;text-decoration:none;display:inline-block;transition:transform .14s ease, background-color .14s ease, color .14s ease, border-color .14s ease, box-shadow .14s ease}
@@ -98,6 +99,8 @@ a{color:var(--mov)}
 .btn-danger:hover{background:var(--danger);color:#fff}
 .btn-small{padding:7px 12px;font-size:.86rem}
 .btn:disabled{opacity:.5;cursor:not-allowed}
+/* Toate butoanele cresc putin la hover, nu doar se coloreaza. */
+button:where(:not(:disabled)):hover{transform:scale(1.03)}
 
 /* Hero */
 .hero{display:block;margin:26px 0}
@@ -120,8 +123,15 @@ label{display:flex;flex-direction:column;gap:6px;font-weight:700;margin:10px 0}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .checkline{display:flex;gap:10px;align-items:flex-start;background:var(--bej-deschis);border:1.5px solid rgba(0,0,128,.35);border-radius:14px;padding:12px;margin:12px 0}
 .checkline input{width:22px;height:22px;margin-top:2px}
-.quorum-box{background:#fff;border:2px solid var(--mov);border-radius:14px;padding:14px;margin:10px 0}
+.quorum-box{background:#fff;border:2px solid var(--mov);border-radius:12px;padding:10px 12px;margin:8px 0}
 .quorum-result{font-weight:900;color:var(--mov);background:var(--bej-deschis);padding:8px 12px;border-radius:10px;display:inline-block;margin-top:8px}
+/* Blocul de cvorum din formular este cu aproximativ 25% mai compact. */
+.quorum-block .checkline{padding:9px;margin:9px 0;gap:7.5px;border-radius:11px}
+.quorum-block .checkline input{width:17px;height:17px;margin-top:1px}
+.quorum-block .checkline strong{font-size:.9rem}
+.quorum-block #quorumFields label{font-size:.9rem;gap:4.5px;margin:7.5px 0}
+.quorum-block #quorumFields input{padding:8px 10px;font-size:.9rem;border-radius:9px}
+.quorum-block .quorum-result{padding:6px 9px;font-size:.9rem;margin-top:6px;border-radius:8px}
 
 /* Intrebari / optiuni */
 .qblock{border:2px solid rgba(0,0,128,.35);border-radius:14px;padding:14px;margin:12px 0;background:#FFFDF4;cursor:grab}
@@ -130,28 +140,36 @@ label{display:flex;flex-direction:column;gap:6px;font-weight:700;margin:10px 0}
 .qblock input[type=text],.qblock input[type=number]{cursor:text}
 .qblock input[type=color],.qblock button{cursor:pointer}
 /* Manerul de mutare a intrebarii (⠿): tine apasat si trage. touch-action:none = merge si pe telefon. */
-.drag-handle{cursor:grab;touch-action:none;user-select:none;color:var(--muted);font-size:1.15rem;line-height:1;padding:4px 2px;border-radius:8px}
-.drag-handle:hover,.drag-handle:active{color:var(--mov)}
+.drag-handle{cursor:grab;touch-action:none;user-select:none;color:var(--muted);font-size:1.15rem;line-height:1;padding:4px 2px;border-radius:8px;transition:color .14s ease,transform .14s ease}
+.drag-handle:hover,.drag-handle:active{color:var(--mov);transform:scale(1.1)}
 .qblock.dragging{opacity:.28;border-style:dashed;border-color:var(--mov);box-shadow:none;cursor:grabbing}
 /* Copia care pluteste sub deget/mouse in timp ce muti intrebarea: iese in relief si acopera celelalte. */
 .drag-ghost{position:fixed;margin:0;z-index:9999;pointer-events:none;background:#FFFDF4;border:2px solid var(--mov);border-radius:14px;box-shadow:0 26px 60px rgba(0,0,128,.38);transform-origin:center;overflow:hidden;opacity:.99;will-change:transform;cursor:grabbing}
 body.dragging-active{cursor:grabbing;user-select:none}
 .opt-row{display:flex;gap:8px;align-items:center;margin:8px 0}
 .opt-row input[type=text]{flex:1;min-width:0}
-.opt-row input[type=color]{width:52px;height:42px;border:none;background:none;padding:0;cursor:pointer}
-.icon-btn{border:2px solid #ddd;background:#fff;border-radius:10px;padding:7px 10px;cursor:pointer;font-weight:800}
-.icon-btn:hover{background:var(--mov);color:#fff;border-color:var(--mov)}
+/* Cabanuta-color: click oriunde pe ea deschide paleta nativa de culori. */
+.color-cabin{position:relative;display:inline-flex;align-items:center;justify-content:center;flex:0 0 56px;width:56px;height:48px;margin:0;padding:0;border:2px solid transparent;border-radius:10px;background:#fff;cursor:pointer;font-weight:400;transition:border-color .14s ease,transform .14s ease,box-shadow .14s ease}
+.color-cabin:hover{border-color:var(--mov);transform:scale(1.06);box-shadow:0 3px 10px rgba(0,0,128,.12)}
+.color-cabin:focus-within{border-color:var(--mov);outline:3px solid rgba(0,0,128,.18)}
+.color-cabin .ocolor{position:absolute;inset:0;width:100%;height:100%;opacity:0;border:0;padding:0;cursor:pointer;z-index:2}
+.color-cabin svg{width:52px;height:46px;display:block;overflow:visible;pointer-events:none}
+.color-cabin .cabin-fill{fill:var(--opt-color,#16A34A)}
+.color-cabin .cabin-side{opacity:.78}
+.color-cabin .cabin-roof{filter:brightness(.86)}
+.icon-btn{border:2px solid #ddd;background:#fff;border-radius:10px;padding:7px 10px;cursor:pointer;font-weight:800;transition:background-color .14s ease,color .14s ease,border-color .14s ease,transform .14s ease}
+.icon-btn:hover{background:var(--mov);color:#fff;border-color:var(--mov);transform:scale(1.08)}
 
 /* Liste sesiuni / istoric */
 .session{border-radius:var(--radius);background:#fff;box-shadow:var(--shadow);margin:12px 0;overflow:hidden;border:1px solid #eee;position:relative}
-.session-head{width:100%;text-align:left;background:#fff;border:none;padding:16px 18px;cursor:pointer;display:flex;gap:12px;align-items:center;justify-content:space-between;font:inherit}
-.session-head:hover{background:#FBFAF2}
+.session-head{width:100%;text-align:left;background:#fff;border:none;padding:16px 18px;cursor:pointer;display:flex;gap:12px;align-items:center;justify-content:space-between;font:inherit;transition:background-color .14s ease,transform .14s ease}
+.session-head:hover{background:#FBFAF2;transform:scale(1.01)}
 .session-head .sname{font-weight:900;color:var(--mov);font-size:1.05rem}
 /* Sesiunile proprii din Istoric au loc pentru cosul de gunoi (apare la click dreapta). */
 .session[data-own] .session-head{padding-right:60px}
-.trash-btn{position:absolute;top:10px;right:10px;z-index:2;width:38px;height:38px;border-radius:50%;border:2px solid var(--danger);background:#fff;color:var(--danger);font-size:1.05rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .15s ease;box-shadow:var(--shadow)}
+.trash-btn{position:absolute;top:10px;right:10px;z-index:2;width:38px;height:38px;border-radius:50%;border:2px solid var(--danger);background:#fff;color:var(--danger);font-size:1.05rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .15s ease,background-color .14s ease,color .14s ease,transform .14s ease;box-shadow:var(--shadow)}
 .session.show-trash .trash-btn{opacity:1;pointer-events:auto}
-.trash-btn:hover{background:var(--danger);color:#fff}
+.trash-btn:hover{background:var(--danger);color:#fff;transform:scale(1.08)}
 /* Pe telefon nu exista click dreapta: cosul se vede mereu, ca sa fie intuitiv. */
 @media (hover:none),(pointer:coarse){
   .session[data-own] .trash-btn{opacity:1;pointer-events:auto}
@@ -162,8 +180,8 @@ body.dragging-active{cursor:grabbing;user-select:none}
 .pill.closed{background:#F3E8FF;color:#6B21A8}
 .session-body{padding:0 18px 18px;border-top:1px dashed rgba(0,0,128,.30)}
 .qitem{border:1.5px solid rgba(0,0,128,.30);border-radius:12px;margin:10px 0;overflow:hidden}
-.qitem>button{width:100%;text-align:left;background:#FFFDF4;border:none;padding:12px 14px;font:inherit;font-weight:800;color:var(--text);cursor:pointer}
-.qitem>button:hover{background:var(--mov);color:#fff}
+.qitem>button{width:100%;text-align:left;background:#FFFDF4;border:none;padding:12px 14px;font:inherit;font-weight:800;color:var(--text);cursor:pointer;transition:background-color .14s ease,color .14s ease,transform .14s ease}
+.qitem>button:hover{background:var(--mov);color:#fff;transform:scale(1.01)}
 .qitem .qdetail{padding:12px 14px;border-top:1px dashed rgba(0,0,128,.30)}
 
 /* Istoric: pagina și bara de căutare mult mai late, ca să nu pară înghesuite. */
@@ -192,7 +210,7 @@ body.dragging-active{cursor:grabbing;user-select:none}
 .current-card{background:linear-gradient(180deg,#fff, #F6F9FF);border:2.5px solid var(--mov)}
 .current-title{font-size:1.5rem;color:var(--mov)}
 .vote-btn{display:block;width:100%;text-align:left;margin:10px 0;padding:15px 16px;border-radius:14px;border:2.5px solid rgba(0,0,128,.30);background:#fff;font:inherit;font-weight:800;cursor:pointer;transition:border-color .14s ease,transform .14s ease,box-shadow .14s ease}
-.vote-btn:hover:not(:disabled){border-color:var(--mov);transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,128,.12)}
+.vote-btn:hover:not(:disabled){border-color:var(--mov);transform:translateY(-1px) scale(1.02);box-shadow:0 4px 14px rgba(0,0,128,.12)}
 .vote-btn.selected{border-color:var(--mov);background:var(--bej-deschis)}
 /* Dupa ce a votat, butoanele sunt blocate: votul nu mai poate fi schimbat. */
 .vote-btn:disabled{cursor:default;opacity:.85}

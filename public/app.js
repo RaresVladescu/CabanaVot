@@ -35,7 +35,37 @@ function toast(msg) {
 
 function esc(s) { return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 
-const PALETTE = ['#0099FF', '#000080', '#D1C885', '#16A34A', '#F59E0B', '#DC2626', '#8B5CF6', '#EC4899'];
+// Culorile standard pentru variantele unei intrebari noi: verde, rosu, bej.
+// Restul paletei se foloseste cand se adauga mai multe variante.
+const PALETTE = ['#16A34A', '#DC2626', '#D1C885', '#0099FF', '#000080', '#F59E0B', '#8B5CF6', '#EC4899'];
+
+// Cabanuta mica din stanga fiecarei variante. Este desenata inline ca sa poata
+// primi culoarea variantei prin CSS (--opt-color), fara imagini suplimentare.
+const CABIN_SVG = `<svg viewBox="0 0 64 56" aria-hidden="true" focusable="false">
+  <rect x="12" y="7.5" width="7" height="16" rx="1" class="cabin-fill" stroke="#000080" stroke-width="2" />
+  <rect x="10" y="4.5" width="11" height="4" rx="1.5" class="cabin-fill" stroke="#000080" stroke-width="2" />
+  <path d="M38 28 L54 23 L54 45 L38 50 Z" class="cabin-fill cabin-side" stroke="#000080" stroke-width="2" stroke-linejoin="round" />
+  <path d="M8 26 H38 V50 H8 Z" class="cabin-fill" stroke="#000080" stroke-width="2" stroke-linejoin="round" />
+  <path d="M23 8 L39 3 L58 21 L42 28 Z" class="cabin-fill cabin-roof" stroke="#000080" stroke-width="2" stroke-linejoin="round" />
+  <path d="M4 28 L23 8 L42 28 Z" class="cabin-fill cabin-roof" stroke="#000080" stroke-width="2" stroke-linejoin="round" />
+  <path d="M17 45 V35 a6 6 0 0 1 12 0 V45 Z" fill="#FFFDF4" stroke="#000080" stroke-width="2.2" stroke-linejoin="round" />
+</svg>`;
+
+function cabinSwatch(color) {
+  const c = color || PALETTE[0];
+  return `<label class="color-cabin" style="--opt-color:${esc(c)}" title="Alege culoarea variantei">
+    <input type="color" class="ocolor" value="${esc(c)}" aria-label="Culoarea variantei" />
+    ${CABIN_SVG}
+  </label>`;
+}
+
+function optionRow(o = {}) {
+  return `<div class="opt-row">
+    ${cabinSwatch(o.color)}
+    <input type="text" class="otext" placeholder="Variantă de răspuns" value="${esc(o.text || '')}" autocomplete="off" data-lpignore="true" data-1p-ignore data-form-type="other" />
+    <button type="button" class="icon-btn del-opt" title="Șterge varianta" aria-label="Șterge varianta">−</button>
+  </div>`;
+}
 
 function statusPill(s) {
   if (s === 'live') return '<span class="pill live">● LIVE</span>';
@@ -57,7 +87,7 @@ function barsHTML(question) {
     return `<div class="bar-row">
       <span class="bar-label">${esc(o.text)}</span>
       <span class="bar-votes">${o.votes} voturi • ${pct}%</span>
-      <div class="bar"><div style="width:${pct}%;background:${esc(o.color || '#0099FF')}"></div></div>
+      <div class="bar"><div style="width:${pct}%;background:${esc(o.color || PALETTE[0])}"></div></div>
     </div>`;
   }).join('');
 }
@@ -216,12 +246,7 @@ function questionBlock(q = { title: '', options: [{ text: '', color: PALETTE[0] 
       <input type="text" class="qtitle" placeholder="Scrie întrebarea" value="${esc(q.title)}" autocomplete="off" data-lpignore="true" data-1p-ignore data-form-type="other" />
       <button type="button" class="icon-btn del-q" title="Șterge întrebarea">✕</button>
     </div>
-    <div class="opts">${q.options.map((o) => `
-      <div class="opt-row">
-        <input type="color" class="ocolor" value="${esc(o.color || '#0099FF')}" title="Culoarea barei de rezultate" />
-        <input type="text" class="otext" placeholder="Variantă de răspuns" value="${esc(o.text)}" autocomplete="off" data-lpignore="true" data-1p-ignore data-form-type="other" />
-        <button type="button" class="icon-btn del-opt" title="Șterge varianta">−</button>
-      </div>`).join('')}</div>
+    <div class="opts">${q.options.map((o) => optionRow(o)).join('')}</div>
     <button type="button" class="btn btn-ghost btn-small add-opt">+ Adaugă variantă</button>
   </div>`;
 }
@@ -248,7 +273,7 @@ function wireForm(areaId, onReorder) {
     if (e.target.closest('.add-opt') && qb) {
       const opts = qb.querySelector('.opts');
       const n = opts.children.length;
-      opts.insertAdjacentHTML('beforeend', `<div class="opt-row"><input type="color" class="ocolor" value="${PALETTE[n % PALETTE.length]}" /><input type="text" class="otext" placeholder="Variantă nouă" autocomplete="off" data-lpignore="true" data-1p-ignore data-form-type="other" /><button type="button" class="icon-btn del-opt">−</button></div>`);
+      opts.insertAdjacentHTML('beforeend', optionRow({ color: PALETTE[n % PALETTE.length] }));
     }
     if (e.target.closest('.del-opt') && qb) {
       if (qb.querySelectorAll('.opt-row').length <= 2) return toast('O întrebare trebuie să aibă cel puțin 2 variante.');
@@ -259,6 +284,12 @@ function wireForm(areaId, onReorder) {
       qb.remove();
       renumber();
     }
+  });
+  // Cabanuta isi schimba imediat culoarea cand alegi alta culoare din paleta nativa.
+  area.addEventListener('input', (e) => {
+    if (!e.target.classList.contains('ocolor')) return;
+    const label = e.target.closest('.color-cabin');
+    if (label) label.style.setProperty('--opt-color', e.target.value);
   });
   function renumber() {
     document.querySelectorAll('.qblock').forEach((qb, i) => { qb.dataset.q = i; });
@@ -274,9 +305,16 @@ function wireForm(areaId, onReorder) {
   $('#fTotal').oninput = updateQuorumHint;
   function updateQuorumHint() {
     const t = Number($('#fTotal').value);
-    $('#quorumHint').textContent = t > 0 ? `Cvorumul este ${Math.ceil((t * 2) / 3)} (2/3 din ${t} cu drept de vot).` : 'Scrie numărul total de persoane cu drept de vot.';
+    const hint = $('#quorumHint');
+    if (t > 0) {
+      hint.hidden = false;
+      hint.textContent = `Cvorumul este ${Math.ceil((t * 2) / 3)} (2/3 din ${t} cu drept de vot).`;
+    } else {
+      hint.hidden = true;
+      hint.textContent = '';
+    }
   }
-  if ($('#fTotal') && $('#fTotal').value) updateQuorumHint();
+  if ($('#fTotal')) updateQuorumHint();
 
   // ---------- Sageata sus/jos = muta cursorul in casuta urmatoare / de mai sus ----------
   // Exemplu: scrii titlul intrebarii 1, apesi sageata jos si mergi direct la prima varianta.
@@ -404,9 +442,10 @@ async function renderCreate() {
   <section class="card">
     <h2>Creează sesiune de vot</h2>
     <input id="fName" type="text" placeholder="Numele sesiunii" aria-label="Numele sesiunii" style="margin:12px 0" />
-    <div class="checkline"><input id="fQuorum" type="checkbox" /><div><strong>Am nevoie de cvorum 2/3</strong></div></div>
-    <div id="quorumFields" hidden><label>Câte persoane au drept de vot?<input id="fTotal" type="number" min="1" /></label><span class="quorum-result" id="quorumHint"></span></div>
-    <h3>Întrebări + variante (fiecare variantă poate avea culoarea ei)</h3>
+    <div class="quorum-block">
+      <div class="checkline"><input id="fQuorum" type="checkbox" /><div><strong>Am nevoie de cvorum 2/3</strong></div></div>
+      <div id="quorumFields" hidden><label>Câte persoane au drept de vot?<input id="fTotal" type="number" min="1" /></label><span class="quorum-result" id="quorumHint" hidden></span></div>
+    </div>
     <div id="qList">${questionBlock(undefined, 0)}</div>
     <div class="row"><button class="btn btn-ghost btn-small" id="addQ">+ Adaugă întrebare</button>
     <button class="btn btn-primary" id="saveSession">Creează sesiunea</button></div>
@@ -432,11 +471,13 @@ async function renderEdit(id) {
     <h2>Editează: ${esc(s.name)}</h2>
     <p class="muted">Doar tu (creatorul) poți modifica întrebările. Poți edita și în timp ce sesiunea e live.</p>
     <input id="fName" type="text" value="${esc(s.name)}" aria-label="Numele sesiunii" style="margin:12px 0" />
-    <div class="checkline"><input id="fQuorum" type="checkbox" ${s.quorumEnabled ? 'checked' : ''} /><div><strong>Am nevoie de cvorum 2/3</strong></div></div>
-    <div id="quorumFields" ${s.quorumEnabled ? '' : 'hidden'}><label>Persoane cu drept de vot<input id="fTotal" type="number" min="1" value="${esc(s.totalEligible || '')}" /></label><span class="quorum-result" id="quorumHint"></span></div>
+    <div class="quorum-block">
+      <div class="checkline"><input id="fQuorum" type="checkbox" ${s.quorumEnabled ? 'checked' : ''} /><div><strong>Am nevoie de cvorum 2/3</strong></div></div>
+      <div id="quorumFields" ${s.quorumEnabled ? '' : 'hidden'}><label>Persoane cu drept de vot<input id="fTotal" type="number" min="1" value="${esc(s.totalEligible || '')}" /></label><span class="quorum-result" id="quorumHint" hidden></span></div>
+    </div>
     <div id="qList">${s.questions.map((q, i) => `<div class="qblock" data-q="${i}" data-qid="${q.id}">
-      <div class="qhead"><span class="drag-handle" title="Ține apăsat și trage ca să muți întrebarea">⠿</span><input type="text" class="qtitle" value="${esc(q.title)}" autocomplete="off" data-lpignore="true" data-1p-ignore data-form-type="other" /><button type="button" class="icon-btn del-q">✕</button></div>
-      <div class="opts">${q.options.map((o) => `<div class="opt-row"><input type="color" class="ocolor" value="${esc(o.color)}" /><input type="text" class="otext" value="${esc(o.text)}" autocomplete="off" data-lpignore="true" data-1p-ignore data-form-type="other" /><button type="button" class="icon-btn del-opt">−</button></div>`).join('')}</div>
+      <div class="qhead"><span class="drag-handle" title="Ține apăsat și trage ca să muți întrebarea">⠿</span><input type="text" class="qtitle" value="${esc(q.title)}" autocomplete="off" data-lpignore="true" data-1p-ignore data-form-type="other" /><button type="button" class="icon-btn del-q" title="Șterge întrebarea">✕</button></div>
+      <div class="opts">${q.options.map((o) => optionRow(o)).join('')}</div>
       <button type="button" class="btn btn-ghost btn-small add-opt">+ Adaugă variantă</button></div>`).join('')}</div>
     <div class="row"><button class="btn btn-ghost btn-small" id="addQ">+ Adaugă întrebare oriunde</button>
     <button class="btn btn-primary" id="saveEdit">Salvează</button>
