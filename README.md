@@ -5,10 +5,15 @@ cu design după Manualul de identitate vizuală Cabana Scout v3.0
 (albastru `#0099FF`, bej `#D1C885`, mov închis `#000080`, font Red Hat Display,
 logo oficial extras din manual în `public/logo.png`).
 
+## Actualizări v1.9 (28 oct 2026) — cabanuțe 2D și coș de gunoi vizibil
+
+- 🏕️ Cabanuțele de lângă variante sunt acum **plate, 2D**, frontale: un singur perete, horn pe stânga, acoperiș în două ape și fereastră arcuită ca în logo. Culoarea rămâne cea a variantei și se schimbă instant din paleta nativă.
+- 🗑️ În **Istoric**, coșul de gunoi pentru sesiunile proprii este acum vizibil permanent, în colțul din dreapta sus, fără click dreapta sau apăsare lungă.
+
 ## Actualizări v1.8 (28 oct 2026) — cabanuțe de culoare și butoane mai vii
 
 - 🟢🔴🟤 La crearea unei întrebări noi, primele două variante primesc automat **verde** și **roșu**, iar a treia adăugată primește **bej**. Restul paletei rămâne disponibilă pentru variantele următoare.
-- 🏕️ În locul dreptunghiurilor de culoare, fiecare variantă are acum o **cabanuță** colorată cu culoarea ei (doi pereți, horn pe stânga, acoperiș în două ape și fereastră arcuită ca în logo). Click pe cabanuță deschide paleta de culori, iar desenul se recolorează imediat.
+- 🏕️ În locul dreptunghiurilor de culoare, fiecare variantă are acum o **cabanuță** colorată cu culoarea ei (horn pe stânga, acoperiș în două ape și fereastră arcuită ca în logo). Click pe cabanuță deschide paleta de culori, iar desenul se recolorează imediat.
 - 🧹 Din formularul de creare au dispărut titlul „Întrebări + variante (fiecare variantă poate avea culoarea ei)” și textul „Scrie numărul total de persoane cu drept de vot”. Când numărul nu e completat, indicația de cvorum rămâne ascunsă.
 - 📏 Blocul de cvorum din formular (checkbox + câmp + indicație) este cu aproximativ **25% mai compact**; și caseta de stare a cvorumului a fost micșorată discret.
 - ✨ **Toate butoanele** se măresc puțin la hover, pe lângă schimbarea de culoare: butoanele principale, iconițele, coșul de gunoi, antetul sesiunii, întrebările din istoric, meniul și butonul de cont.

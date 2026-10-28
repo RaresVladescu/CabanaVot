@@ -39,16 +39,15 @@ function esc(s) { return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&am
 // Restul paletei se foloseste cand se adauga mai multe variante.
 const PALETTE = ['#16A34A', '#DC2626', '#D1C885', '#0099FF', '#000080', '#F59E0B', '#8B5CF6', '#EC4899'];
 
-// Cabanuta mica din stanga fiecarei variante. Este desenata inline ca sa poata
-// primi culoarea variantei prin CSS (--opt-color), fara imagini suplimentare.
+// Cabanuta mica din stanga fiecarei variante. Varianta 2D, frontala, ca in logo:
+// un singur perete, acoperis in doua ape, horn pe stanga si fereastra arcuita.
+// Este desenata inline ca sa poata primi culoarea variantei prin CSS (--opt-color).
 const CABIN_SVG = `<svg viewBox="0 0 64 56" aria-hidden="true" focusable="false">
-  <rect x="12" y="7.5" width="7" height="16" rx="1" class="cabin-fill" stroke="#000080" stroke-width="2" />
-  <rect x="10" y="4.5" width="11" height="4" rx="1.5" class="cabin-fill" stroke="#000080" stroke-width="2" />
-  <path d="M38 28 L54 23 L54 45 L38 50 Z" class="cabin-fill cabin-side" stroke="#000080" stroke-width="2" stroke-linejoin="round" />
-  <path d="M8 26 H38 V50 H8 Z" class="cabin-fill" stroke="#000080" stroke-width="2" stroke-linejoin="round" />
-  <path d="M23 8 L39 3 L58 21 L42 28 Z" class="cabin-fill cabin-roof" stroke="#000080" stroke-width="2" stroke-linejoin="round" />
-  <path d="M4 28 L23 8 L42 28 Z" class="cabin-fill cabin-roof" stroke="#000080" stroke-width="2" stroke-linejoin="round" />
-  <path d="M17 45 V35 a6 6 0 0 1 12 0 V45 Z" fill="#FFFDF4" stroke="#000080" stroke-width="2.2" stroke-linejoin="round" />
+  <rect x="18" y="10" width="7" height="16" rx="1" class="cabin-fill" stroke="#000080" stroke-width="2" />
+  <rect x="16" y="7" width="11" height="4" rx="1.5" class="cabin-fill" stroke="#000080" stroke-width="2" />
+  <path d="M14 28 H50 V50 H14 Z" class="cabin-fill" stroke="#000080" stroke-width="2" stroke-linejoin="round" />
+  <path d="M8 30 L32 8 L56 30 Z" class="cabin-fill cabin-roof" stroke="#000080" stroke-width="2" stroke-linejoin="round" />
+  <path d="M26 47 V37 a6 6 0 0 1 12 0 V47 Z" fill="#FFFDF4" stroke="#000080" stroke-width="2.2" stroke-linejoin="round" />
 </svg>`;
 
 function cabinSwatch(color) {
@@ -565,17 +564,7 @@ async function renderHistory() {
       </div>
     </div>`;
   }
-  // Click dreapta (sau apasare lunga pe telefon) pe o sesiune proprie: apare cosul rosu.
-  app.querySelectorAll('.session[data-own]').forEach((el) => {
-    el.addEventListener('contextmenu', (e) => {
-      e.preventDefault();
-      app.querySelectorAll('.session.show-trash').forEach((x) => x.classList.remove('show-trash'));
-      el.classList.add('show-trash');
-    });
-    el.addEventListener('click', (e) => {
-      if (!e.target.closest('.trash-btn')) el.classList.remove('show-trash');
-    });
-  });
+  // Cosul de gunoi este mereu vizibil pentru sesiunile proprii, in coltul din dreapta sus.
   app.querySelectorAll('.trash-btn').forEach((b) => {
     b.onclick = async (e) => {
       e.stopPropagation();
