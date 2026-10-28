@@ -5,6 +5,14 @@ cu design după Manualul de identitate vizuală Cabana Scout v3.0
 (albastru `#0099FF`, bej `#D1C885`, mov închis `#000080`, font Red Hat Display,
 logo oficial extras din manual în `public/logo.png`).
 
+## Actualizări v2.0 (28 oct 2026) — vot în doi pași și așteptare live
+
+- 🗳️ Pe ecranul de vot, participantul alege întâi varianta, apoi apasă **TRIMITE**. Butonul pornește albastru fade-uit și devine albastru intens după ce a fost aleasă o variantă; răspunsul se înregistrează doar la apăsarea butonului.
+- ⏳ După introducerea codului și apăsarea **Intră în vot**, participantul vede un ecran de așteptare chiar dacă sesiunea nu e pornită. Când administratorul pornește votul, întrebarea apare automat, fără refresh.
+- 🔁 După trimiterea răspunsului, participantul revine la ecranul de așteptare până apare următoarea întrebare. Pagina se actualizează automat la fiecare **5 secunde**.
+- 📱 Cabanuțele colorate apar acum și pe ecranul de vot, inclusiv pe mobil, la o dimensiune compactă.
+- 🏕️ Desenul cabanuțelor a fost retușat discret: colțuri rotunjite, horn cu capac, acoperiș cu streașină și umbră fină la bază, fără să devină încărcat.
+
 ## Actualizări v1.9 (28 oct 2026) — cabanuțe 2D și coș de gunoi vizibil
 
 - 🏕️ Cabanuțele de lângă variante sunt acum **plate, 2D**, frontale: un singur perete, horn pe stânga, acoperiș în două ape și fereastră arcuită ca în logo. Culoarea rămâne cea a variantei și se schimbă instant din paleta nativă.

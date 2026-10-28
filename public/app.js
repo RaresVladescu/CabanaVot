@@ -43,11 +43,12 @@ const PALETTE = ['#16A34A', '#DC2626', '#D1C885', '#0099FF', '#000080', '#F59E0B
 // un singur perete, acoperis in doua ape, horn pe stanga si fereastra arcuita.
 // Este desenata inline ca sa poata primi culoarea variantei prin CSS (--opt-color).
 const CABIN_SVG = `<svg viewBox="0 0 64 56" aria-hidden="true" focusable="false">
-  <rect x="18" y="10" width="7" height="16" rx="1" class="cabin-fill" stroke="#000080" stroke-width="2" />
-  <rect x="16" y="7" width="11" height="4" rx="1.5" class="cabin-fill" stroke="#000080" stroke-width="2" />
-  <path d="M14 28 H50 V50 H14 Z" class="cabin-fill" stroke="#000080" stroke-width="2" stroke-linejoin="round" />
-  <path d="M8 30 L32 8 L56 30 Z" class="cabin-fill cabin-roof" stroke="#000080" stroke-width="2" stroke-linejoin="round" />
-  <path d="M26 47 V37 a6 6 0 0 1 12 0 V47 Z" fill="#FFFDF4" stroke="#000080" stroke-width="2.2" stroke-linejoin="round" />
+  <ellipse class="cabin-shadow" cx="32" cy="51.6" rx="20.5" ry="2.4" />
+  <rect x="18" y="10" width="7" height="17" rx="2" class="cabin-fill" stroke="#000080" stroke-width="2" />
+  <rect x="16" y="7" width="11" height="4" rx="2" class="cabin-fill" stroke="#000080" stroke-width="2" />
+  <rect x="14" y="28" width="36" height="22" rx="3.5" class="cabin-fill" stroke="#000080" stroke-width="2" />
+  <path d="M6.5 30.5 L32 7 L57.5 30.5 Z" class="cabin-fill cabin-roof" stroke="#000080" stroke-width="2.2" stroke-linejoin="round" />
+  <path d="M26 47.5 V38.5 a6 6 0 0 1 12 0 V47.5 Z" fill="#FFFDF4" stroke="#000080" stroke-width="2.2" stroke-linejoin="round" />
 </svg>`;
 
 function cabinSwatch(color) {
@@ -56,6 +57,12 @@ function cabinSwatch(color) {
     <input type="color" class="ocolor" value="${esc(c)}" aria-label="Culoarea variantei" />
     ${CABIN_SVG}
   </label>`;
+}
+
+// Cabanuta de pe ecranul de vot: doar desen, fara input de culoare.
+function cabinIcon(color) {
+  const c = color || PALETTE[0];
+  return `<span class="vote-cabin" style="--opt-color:${esc(c)}" aria-hidden="true">${CABIN_SVG}</span>`;
 }
 
 function optionRow(o = {}) {
@@ -168,6 +175,8 @@ function sessionCardMini(s) {
 }
 
 // ---------- Voteaza cu cod (votant, fara cont) ----------
+const VOTER_POLL_MS = 5000;
+
 async function renderJoin() {
   const params = new URLSearchParams((location.hash.split('?')[1] || ''));
   const prefill = (params.get('cod') || '').toUpperCase();
@@ -177,7 +186,7 @@ async function renderJoin() {
     <p class="muted">Votul tău e <em><strong>anonim</strong></em>.</p>
     <div class="join-row">
       <input id="vCode" type="text" placeholder="Codul votului" maxlength="6" value="${esc(prefill)}" style="text-transform:uppercase;font-weight:900;letter-spacing:3px" />
-      <button class="btn btn-primary" id="vJoin">Intră la vot</button>
+      <button class="btn btn-primary" id="vJoin">Intră în vot</button>
     </div>
     <div id="vArea" style="margin-top:14px"></div>
   </section>`;
@@ -186,55 +195,269 @@ async function renderJoin() {
 }
 
 async function joinSession(code) {
+  code = String(code || '').trim().toUpperCase();
   const area = $('#vArea');
   if (!code) return toast('Scrie codul.');
+  if (!area) return;
+  stopPoll();
+  area.innerHTML = `<div class="waiting-card voter-loading">
+    <div class="waiting-icon">⏳</div>
+    <h3>Se conectează…</h3>
+    <p>Verificăm codul <strong>${esc(code)}</strong>.</p>
+  </div>`;
   const voterId = getVoterId();
   try {
     await api('/api/join/' + encodeURIComponent(code) + '/register', { method: 'POST', body: JSON.stringify({ voterId }) });
-  } catch (e) { area.innerHTML = `<p style="color:var(--danger);font-weight:800">${esc(e.message)}</p>`; return; }
+  } catch (e) {
+    area.innerHTML = `<div class="waiting-card">
+      <div class="waiting-icon waiting-icon-error">!</div>
+      <h3>Nu am putut intra</h3>
+      <p>${esc(e.message)}</p>
+    </div>`;
+    return;
+  }
+  // Daca intre timp utilizatorul a schimbat pagina, nu mai continuam.
+  if (!document.body.contains(area) || !location.hash.startsWith('#/voteaza')) return;
+  history.replaceState(null, '', '#/voteaza?cod=' + encodeURIComponent(code));
+  toast('Te-ai alăturat anonim sesiunii ' + code);
+  startVoterSession(code, voterId);
+}
 
-  let lastStatus = null;
-  async function refresh(silent) {
+function startVoterSession(code, voterId) {
+  app.innerHTML = `
+  <section class="voter-page">
+    <div class="voter-top">
+      <div>
+        <span class="voter-kicker">Vot anonim</span>
+        <h2 id="vName">Se încarcă sesiunea…</h2>
+        <span class="voter-code" id="vCodeLabel">Cod ${esc(code)}</span>
+      </div>
+      <button type="button" class="btn btn-ghost btn-small" id="vChangeCode">Schimbă codul</button>
+    </div>
+    <div id="vStage">
+      <div class="waiting-card voter-loading">
+        <div class="waiting-icon">⏳</div>
+        <h3>Se conectează…</h3>
+        <p>Verificăm sesiunea și pregătim votul.</p>
+      </div>
+    </div>
+    <p class="voter-auto tiny muted"><span class="pulse-dot" aria-hidden="true"></span> Se actualizează automat la 5 secunde.</p>
+  </section>`;
+  $('#vChangeCode').onclick = () => { stopPoll(); location.hash = '#/voteaza'; };
+
+  const stage = $('#vStage');
+  const state = {
+    code,
+    voterId,
+    status: 'loading',
+    questionId: null,
+    questionSig: null,
+    selected: null,
+    submitting: false,
+    errorShown: false,
+  };
+  let refreshing = false;
+
+  function questionSignature(c) {
+    return JSON.stringify({ title: c.title, options: c.options.map((o) => [o.text, o.color]) });
+  }
+
+  function setAutoStatus(text, isError = false) {
+    const el = $('.voter-auto');
+    if (!el) return;
+    el.innerHTML = `<span class="pulse-dot${isError ? ' error' : ''}" aria-hidden="true"></span> ${esc(text)}`;
+  }
+
+  function updateHeader(s) {
+    if (!s) return;
+    const nameEl = $('#vName');
+    const codeEl = $('#vCodeLabel');
+    if (nameEl) nameEl.textContent = s.name;
+    if (codeEl) codeEl.textContent = 'Cod ' + s.code;
+  }
+
+  function waitingMarkup(kind, s) {
+    const name = esc(s.name || 'această sesiune');
+    if (kind === 'closed') {
+      return `<div class="waiting-card">
+        <div class="waiting-icon waiting-icon-closed">✓</div>
+        <h3>Sesiunea s-a încheiat</h3>
+        <p>Mulțumim pentru participare! Sesiunea <strong>${name}</strong> nu mai primește răspunsuri.</p>
+      </div>`;
+    }
+    if (kind === 'voted') {
+      return `<div class="waiting-card">
+        <div class="waiting-icon waiting-icon-ok">✓</div>
+        <h3>Răspuns trimis</h3>
+        <p>Răspunsul tău a fost înregistrat anonim. Așteaptă următoarea întrebare — pagina se actualizează automat.</p>
+        <div class="waiting-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+      </div>`;
+    }
+    if (kind === 'draft') {
+      return `<div class="waiting-card">
+        <div class="waiting-icon">⏳</div>
+        <h3>Votul nu a început încă</h3>
+        <p>Sesiunea <strong>${name}</strong> este în așteptare. Când administratorul pornește votul, întrebarea va apărea automat aici.</p>
+        <div class="waiting-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+      </div>`;
+    }
+    return `<div class="waiting-card">
+      <div class="waiting-icon">⏳</div>
+      <h3>Așteptăm următoarea întrebare</h3>
+      <p>Administratorul pregătește următoarea întrebare. Pagina se actualizează automat.</p>
+      <div class="waiting-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+    </div>`;
+  }
+
+  function showWaiting(kind, s) {
+    if (state.status === kind && stage.querySelector('.waiting-card')) return;
+    state.status = kind;
+    state.selected = null;
+    state.questionId = null;
+    stage.innerHTML = waitingMarkup(kind, s);
+  }
+
+  function questionMarkup(s) {
+    const c = s.current;
+    const qNo = (s.currentIndex ?? 0) + 1;
+    return `<div class="card vote-card">
+      <div class="vote-meta">
+        ${statusPill('live')}
+        <span class="tiny muted">Întrebarea ${qNo} din ${s.questionsCount}</span>
+      </div>
+      ${s.quorumEnabled ? `<p class="tiny muted vote-quorum">Cvorum 2/3: înregistrați ${s.registered} din necesarul ${s.quorumNeeded}.</p>` : ''}
+      <p class="current-title">${esc(c.title)}</p>
+      <div class="vote-options">
+        ${c.options.map((o, i) => `<button type="button" class="vote-btn" data-i="${i}" aria-pressed="false">
+          ${cabinIcon(o.color)}
+          <span class="vote-label">${esc(o.text)}</span>
+          <span class="vote-check" aria-hidden="true"></span>
+        </button>`).join('')}
+      </div>
+      <button type="button" class="btn vote-submit" id="vSubmit" disabled>TRIMITE</button>
+      <p class="tiny muted vote-hint" id="vHint">Alege o variantă, apoi apasă <strong>TRIMITE</strong>. Răspunsul se înregistrează doar atunci.</p>
+      <p class="tiny muted vote-total">Total voturi aici: <strong id="vTotal">${c.total}</strong></p>
+    </div>`;
+  }
+
+  function showQuestion(s) {
+    state.status = 'live';
+    state.questionId = s.current.id;
+    state.questionSig = questionSignature(s.current);
+    state.selected = null;
+    stage.innerHTML = questionMarkup(s);
+    const submit = $('#vSubmit');
+    const hint = $('#vHint');
+    stage.querySelectorAll('.vote-btn').forEach((b) => {
+      b.onclick = () => {
+        if (state.submitting) return;
+        state.selected = Number(b.dataset.i);
+        stage.querySelectorAll('.vote-btn').forEach((x) => {
+          const on = x === b;
+          x.classList.toggle('selected', on);
+          x.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+        submit.disabled = false;
+        hint.innerHTML = 'Ai ales o variantă. Apasă <strong>TRIMITE</strong> ca să o înregistrezi.';
+      };
+    });
+    submit.onclick = async () => {
+      if (state.submitting || state.selected == null) return;
+      state.submitting = true;
+      stage.querySelectorAll('.vote-btn').forEach((x) => (x.disabled = true));
+      submit.disabled = true;
+      submit.textContent = 'SE TRIMITE…';
+      try {
+        await api('/api/vote', { method: 'POST', body: JSON.stringify({ code: state.code, questionId: s.current.id, optionIndex: state.selected, voterId: state.voterId }) });
+        toast('Răspuns trimis anonim ✓ Așteaptă următoarea întrebare.');
+        state.submitting = false;
+        showWaiting('voted', { name: $('#vName') ? $('#vName').textContent : '' });
+        await refresh({ silent: true, force: true });
+      } catch (e) {
+        state.submitting = false;
+        toast(e.message);
+        await refresh({ silent: true });
+        // Dacă întrebarea a rămas aceeași, utilizatorul poate reîncerca.
+        const retry = $('#vSubmit');
+        if (retry && stage.querySelector('.vote-card')) {
+          stage.querySelectorAll('.vote-btn').forEach((x) => (x.disabled = false));
+          retry.textContent = 'TRIMITE';
+          retry.disabled = state.selected == null;
+        }
+      }
+    };
+  }
+
+  async function refresh({ silent = false, force = false } = {}) {
+    if (refreshing || state.submitting) return;
+    refreshing = true;
     try {
-      const s = await api('/api/join/' + encodeURIComponent(code) + '?voterId=' + encodeURIComponent(voterId));
-      lastStatus = s.status;
-      if (s.status === 'draft') {
-        area.innerHTML = `<div class="quorum-box">Sesiunea <strong>${esc(s.name)}</strong> încă nu e pornită. Stai aproape — administratorul o va porni. ⏳</div>`;
+      const s = await api('/api/join/' + encodeURIComponent(state.code) + '?voterId=' + encodeURIComponent(state.voterId), { cache: 'no-store' });
+      if (!document.body.contains(stage)) return;
+      state.errorShown = false;
+      setAutoStatus('Se actualizează automat la 5 secunde.');
+      updateHeader(s);
+
+      if (s.status === 'closed') {
+        showWaiting('closed', s);
+        setAutoStatus('Sesiunea este închisă.');
+        stopPoll();
         return;
       }
-      if (s.status === 'closed') {
-        area.innerHTML = `<div class="quorum-box">Sesiunea <strong>${esc(s.name)}</strong> s-a încheiat. Mulțumim! ✅</div>`;
-        stopPoll(); return;
+      if (s.status === 'draft') {
+        showWaiting('draft', s);
+        return;
       }
       const c = s.current;
-      if (!c) { area.innerHTML = '<p class="muted">Nu există întrebare activă momentan.</p>'; return; }
-      const voted = c.myVote != null;
-      area.innerHTML = `
-        <h3>${esc(s.name)} <span class="tiny muted">• întrebarea ${(s.currentIndex ?? 0) + 1} din ${s.questionsCount}</span></h3>
-        ${s.quorumEnabled ? `<p class="tiny muted">Cvorum 2/3: înregistrați ${s.registered} din necesarul ${s.quorumNeeded}.</p>` : ''}
-        <p class="current-title">${esc(c.title)}</p>
-        ${c.options.map((o, i) => `<button class="vote-btn ${c.myVote === i ? 'selected' : ''}" data-i="${i}" ${voted ? 'disabled' : ''}><span class="dot" style="background:${esc(o.color)}"></span> ${esc(o.text)} ${c.myVote === i ? '✓ (votul tău)' : ''}</button>`).join('')}
-        <p class="tiny muted">${voted
-          ? 'Votul tău a fost înregistrat. Acum așteaptă următoarea întrebare — votul nu mai poate fi schimbat.'
-          : 'Atinge o variantă ca să votezi. După ce votezi, votul rămâne înregistrat și nu mai poate fi schimbat.'} • Total voturi: <strong id="vTotal">${c.total}</strong></p>`;
-      area.querySelectorAll('.vote-btn').forEach((b) => (b.onclick = async () => {
-        if (b.disabled) return;
-        // blocam butoanele imediat, ca un dublu-click sa nu trimita doua voturi
-        area.querySelectorAll('.vote-btn').forEach((x) => (x.disabled = true));
-        try {
-          await api('/api/vote', { method: 'POST', body: JSON.stringify({ code, questionId: c.id, optionIndex: Number(b.dataset.i), voterId }) });
-          toast('Vot înregistrat anonim ✓ Așteaptă următoarea întrebare.');
-        } catch (e) { toast(e.message); }
-        refresh(true);
-      }));
-    } catch (e) { if (!silent) toast(e.message); }
+      if (!c) {
+        showWaiting('waiting', s);
+        return;
+      }
+      if (c.myVote != null) {
+        showWaiting('voted', s);
+        return;
+      }
+      if (force || state.questionId !== c.id || state.questionSig !== questionSignature(c) || state.status !== 'live' || !stage.querySelector('.vote-card')) {
+        showQuestion(s);
+        return;
+      }
+      // Aceeași întrebare: nu rescriem cardul, ca să nu pierdem varianta aleasă.
+      const totalEl = $('#vTotal');
+      if (totalEl) totalEl.textContent = c.total;
+      if (s.quorumEnabled) {
+        const q = $('.vote-quorum');
+        if (q) q.textContent = `Cvorum 2/3: înregistrați ${s.registered} din necesarul ${s.quorumNeeded}.`;
+      }
+    } catch (e) {
+      if (!document.body.contains(stage)) return;
+      if (/nu exista|nu a fost gasita/i.test(e.message)) {
+        stopPoll();
+        state.status = 'error';
+        setAutoStatus('Sesiunea nu mai este disponibilă.', true);
+        stage.innerHTML = `<div class="waiting-card">
+          <div class="waiting-icon waiting-icon-error">!</div>
+          <h3>Sesiunea nu mai este disponibilă</h3>
+          <p>${esc(e.message)}</p>
+          <button type="button" class="btn btn-primary" id="vBack">Încearcă alt cod</button>
+        </div>`;
+        const back = $('#vBack');
+        if (back) back.onclick = () => { stopPoll(); location.hash = '#/voteaza'; };
+        return;
+      }
+      if (!silent) toast(e.message);
+      else if (!state.errorShown) {
+        state.errorShown = true;
+        toast('Conexiune întreruptă — reîncerc automat.');
+      }
+      setAutoStatus('Conexiune întreruptă — reîncerc automat.', true);
+    } finally {
+      refreshing = false;
+    }
   }
-  await refresh();
-  toast('Te-ai alăturat anonim sesiunii ' + code);
-  if (lastStatus !== 'closed') {
-    stopPoll();
-    pollTimer = setInterval(() => refresh(true), 2500);
-  }
+
+  refresh();
+  stopPoll();
+  pollTimer = setInterval(() => refresh({ silent: true }), VOTER_POLL_MS);
 }
 
 // ---------- Formular creare / editare ----------
