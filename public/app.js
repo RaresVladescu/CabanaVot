@@ -891,7 +891,16 @@ async function renderControl(id) {
     if ($('#cStart')) $('#cStart').onclick = () => ctl({ action: 'start' });
     if ($('#cNext')) $('#cNext').onclick = () => ctl({ action: 'next' });
     if ($('#cPrev')) $('#cPrev').onclick = () => ctl({ action: 'prev' });
-    if ($('#cClose')) $('#cClose').onclick = () => ctl({ action: 'close' });
+    if ($('#cClose')) $('#cClose').onclick = async () => {
+      const ok = await askConfirm({
+        title: 'Închizi sesiunea?',
+        message: `Sesiunea „${s.name}” va fi închisă definitiv. O sesiune închisă nu mai poate fi redeschisă.`,
+        confirmText: 'Închide sesiunea',
+        icon: '⚠️',
+      });
+      if (!ok) return;
+      ctl({ action: 'close' });
+    };
     app.querySelectorAll('[data-goto]').forEach((b) => (b.onclick = () => ctl({ action: 'goto', index: Number(b.dataset.goto) })));
     // cele doua butoane discrete: extinde / colapseaza toate intrebarile
     const setAll = (open) => app.querySelectorAll('.tree details').forEach((d) => { d.open = open; });
@@ -946,11 +955,12 @@ function closeAccountModal() {
 
 // Confirmare proprie, in stilul site-ului, pentru stergerea sesiunilor.
 // Inlocuieste dialogul basic al browserului si returneaza true/false.
-function askConfirm({ title = 'Confirmă', message = '', confirmText = 'Confirmă', cancelText = 'Anulează' } = {}) {
+function askConfirm({ title = 'Confirmă', message = '', confirmText = 'Confirmă', cancelText = 'Anulează', icon = '🗑' } = {}) {
   const modal = $('#confirmModal');
   if (!modal) return Promise.resolve(false);
   if (confirmResolve) { const previous = confirmResolve; confirmResolve = null; previous(false); }
   confirmPreviousFocus = document.activeElement;
+  $('#confirmIcon').textContent = icon;
   $('#confirmTitle').textContent = title;
   $('#confirmMessage').textContent = message;
   $('#confirmOk').textContent = confirmText;

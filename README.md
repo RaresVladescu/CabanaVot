@@ -5,6 +5,11 @@ cu design după Manualul de identitate vizuală Cabana Scout v3.0
 (albastru `#0099FF`, bej `#D1C885`, mov închis `#000080`, font Red Hat Display,
 logo oficial extras din manual în `public/logo.png`).
 
+## Actualizări v2.5 (29 oct 2026) — confirmare la închiderea sesiunii
+
+- ⚠️ Când creatorul apasă **„Închide sesiunea”**, apare o fereastră de confirmare în stilul site-ului, care avertizează că sesiunea va fi închisă definitiv și **nu mai poate fi redeschisă**. Butonul de confirmare este **„Închide sesiunea”**.
+- 📱 Semicercul decorativ din hero a fost mutat în spatele conținutului; butonul **„Votează cu cod”** rămâne apăsabil pe mobil, fără să fie acoperit.
+
 ## Actualizări v2.4 (29 oct 2026) — ecran de mentenanță
 
 - 🚧 Cât timp se lucrează la site, vizitatorii văd un ecran cu fundal montan și textul mare **„Site-ul este în mentenanță”**. Comutatorul este `public/maintenance.js`: `true` cât timp se lucrează, `false` după terminare.

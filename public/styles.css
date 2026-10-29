@@ -127,7 +127,9 @@ button:where(:not(:disabled)):hover{transform:scale(1.03)}
 /* Hero */
 .hero{display:block;margin:26px 0}
 .hero-card{background:linear-gradient(135deg,var(--mov),#1E3AA8 55%,var(--albastru));color:#fff;border-radius:22px;padding:30px;box-shadow:var(--shadow);position:relative;overflow:hidden}
-.hero-card::after{content:"";position:absolute;right:-40px;top:-40px;width:200px;height:200px;background:rgba(209,200,133,.35);border-radius:50%}
+/* Semicercul decorativ rămâne în spatele textului și al butoanelor, ca să nu blocheze click-urile pe mobil. */
+.hero-card::after{content:"";position:absolute;right:-40px;top:-40px;width:200px;height:200px;background:rgba(209,200,133,.35);border-radius:50%;pointer-events:none;z-index:0}
+.hero-card > *{position:relative;z-index:1}
 .hero-card h1{margin:0 0 10px;font-size:2.1rem;line-height:1.1}
 .hero-card p{opacity:.92}
 .hero-cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
