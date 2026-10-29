@@ -26,6 +26,28 @@
    Regula de mai jos se asigura ca `hidden` ascunde mereu elementul. */
 [hidden]{display:none!important}
 html,body{margin:0;padding:0}
+/* Ecran de mentenanță: ascunde complet site-ul și afișează doar anunțul. */
+.maintenance-screen{display:none}
+html.maintenance body > *:not(#maintenanceScreen){display:none!important}
+html.maintenance .maintenance-screen{
+  display:flex;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;padding:24px;
+  background:
+    linear-gradient(180deg,rgba(0,0,128,.76),rgba(0,0,128,.86)),
+    url("fundal.jpg") center/cover no-repeat fixed;
+}
+.maintenance-card{
+  width:min(760px,100%);text-align:center;color:#fff;padding:38px 28px;border-radius:24px;
+  background:rgba(255,255,255,.09);border:1.5px solid rgba(255,255,255,.24);
+  box-shadow:0 24px 70px rgba(0,0,0,.28);backdrop-filter:blur(5px);
+}
+.maintenance-card img{display:block;margin:0 auto 16px;filter:drop-shadow(0 8px 18px rgba(0,0,0,.22))}
+.maintenance-kicker{margin:0 0 10px;color:var(--bej);font-weight:800;letter-spacing:.18em;text-transform:uppercase;font-size:.78rem}
+.maintenance-card h1{margin:0;font-size:clamp(2.3rem,7vw,5rem);line-height:1.02;letter-spacing:-.03em;text-shadow:0 6px 24px rgba(0,0,0,.24)}
+.maintenance-card p:last-child{margin:20px auto 0;max-width:520px;color:rgba(255,255,255,.86);font-size:clamp(1rem,2.2vw,1.25rem);line-height:1.5}
+@media(max-width:520px){
+  .maintenance-card{padding:30px 20px;border-radius:20px}
+  .maintenance-card h1{font-size:clamp(2.1rem,11vw,3.2rem)}
+}
 body{
   font-family:"Red Hat Display",Helvetica,Arial,sans-serif;
   color:var(--text);
@@ -260,6 +282,16 @@ body.dragging-active{cursor:grabbing;user-select:none}
 .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,128,.45);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
 .modal{background:#fff;border-radius:18px;padding:22px;max-width:440px;width:100%;box-shadow:var(--shadow);max-height:calc(100vh - 32px);overflow:auto}
 .modal h2{margin-top:0;color:var(--mov)}
+/* Confirmare proprie pentru acțiuni distructive, în stilul site-ului. */
+.confirm-modal{max-width:430px;text-align:center;border-top:5px solid var(--danger);padding:26px 24px 22px;animation:confirm-pop .18s ease-out}
+.confirm-icon{width:62px;height:62px;margin:0 auto 14px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#FFF1F1;border:2px solid rgba(220,38,38,.22);font-size:1.65rem}
+.confirm-modal h2{margin:0 0 8px;color:var(--mov);font-size:1.35rem}
+.confirm-message{margin:0 auto;max-width:350px;color:var(--muted);line-height:1.5;overflow-wrap:anywhere}
+.confirm-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:20px}
+.confirm-actions .btn{min-width:142px}
+.confirm-modal .btn-danger{background:var(--danger);color:#fff;border-color:var(--danger);box-shadow:0 6px 16px rgba(220,38,38,.22)}
+.confirm-modal .btn-danger:hover{background:#B91C1C;border-color:#B91C1C}
+@keyframes confirm-pop{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
 .account-info{display:flex;flex-direction:column;gap:10px;background:var(--bej-deschis);border:1.5px solid var(--bej);border-radius:14px;padding:14px;margin:12px 0}
 .account-info .lbl{display:block;font-size:.74rem;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
 .account-info strong{color:var(--mov);word-break:break-word}
@@ -331,4 +363,6 @@ body.dragging-active{cursor:grabbing;user-select:none}
 @media(max-width:430px){
   .brand-text .brand-slogan{display:none}
   .btn{padding:10px 14px}
+  .confirm-actions{flex-direction:column-reverse}
+  .confirm-actions .btn{width:100%}
 }

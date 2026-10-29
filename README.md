@@ -5,6 +5,24 @@ cu design după Manualul de identitate vizuală Cabana Scout v3.0
 (albastru `#0099FF`, bej `#D1C885`, mov închis `#000080`, font Red Hat Display,
 logo oficial extras din manual în `public/logo.png`).
 
+## Actualizări v2.4 (29 oct 2026) — ecran de mentenanță
+
+- 🚧 Cât timp se lucrează la site, vizitatorii văd un ecran cu fundal montan și textul mare **„Site-ul este în mentenanță”**. Comutatorul este `public/maintenance.js`: `true` cât timp se lucrează, `false` după terminare.
+- 🛠️ Pe `localhost` site-ul rămâne normal pentru testare; ecranul de mentenanță poate fi previzualizat local cu `?maintenance=1`.
+
+## Actualizări v2.3 (29 oct 2026) — istoric privat pe cont
+
+- 🔒 **Istoric** și **Sesiuni active** arată doar sesiunile create de contul logat. Lista este filtrată și pe server, nu doar în interfață, deci alt cont nu poate vedea sesiunile tale.
+- 🔐 Fără autentificare, pagina **Istoric** cere conectarea cu emailul folosit la creare.
+
+## Actualizări v2.2 (29 oct 2026) — confirmare de ștergere personalizată
+
+- 🗑️ Când ștergi o sesiune din **Istoric** (sau din **Sesiuni active**), confirmarea apare într-o fereastră proprie, în stilul site-ului, cu butoanele **Anulează** și **Șterge sesiunea**. Dialogul basic al browserului nu mai este folosit.
+
+## Actualizări v2.1 (29 oct 2026) — pagina acasă fără istoric
+
+- 🏠 Pagina de start afișează doar zona principală cu **Vot anonim** și butoanele de creare/votare. Secțiunea „Ultimele sesiuni din istoric” a fost scoasă.
+
 ## Actualizări v2.0 (28 oct 2026) — vot în doi pași și așteptare live
 
 - 🗳️ Pe ecranul de vot, participantul alege întâi varianta, apoi apasă **TRIMITE**. Butonul pornește albastru fade-uit și devine albastru intens după ce a fost aleasă o variantă; răspunsul se înregistrează doar la apăsarea butonului.

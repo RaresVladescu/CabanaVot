@@ -3,6 +3,8 @@ const API = '';
 const $ = (s) => document.querySelector(s);
 const app = $('#app');
 let pollTimer = null;
+let confirmResolve = null;
+let confirmPreviousFocus = null;
 
 function stopPoll() { if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } }
 
@@ -140,10 +142,7 @@ function route() {
 }
 
 // ---------- Acasa ----------
-async function renderHome() {
-  let last = [];
-  try { last = await api('/api/sessions'); } catch {}
-  last = last.slice(0, 3);
+function renderHome() {
   app.innerHTML = `
   <section class="hero">
     <div class="hero-card">
@@ -153,8 +152,7 @@ async function renderHome() {
         <a class="btn btn-ghost" href="#/voteaza" data-nav>Votează cu cod</a>
       </div>
     </div>
-  </section>
-  ${last.length ? `<section class="card"><h2>Ultimele sesiuni din istoric</h2>${last.map(sessionCardMini).join('')}<p><a href="#/istoric" data-nav>Vezi tot istoricul →</a></p></section>` : ''}`;
+  </section>`;
 }
 
 // ---------- Pagina de pornire (prima pagina dupa login — doar prima data) ----------
@@ -168,10 +166,6 @@ function renderWelcome() {
       <a class="btn btn-primary" href="#/platforma" data-nav>Continuă →</a>
     </div>
   </section>`;
-}
-
-function sessionCardMini(s) {
-  return `<div class="session"><button class="session-head" onclick="location.hash='#/istoric'"><span class="sname">${esc(s.name)}</span>${statusPill(s.status)}</button></div>`;
 }
 
 // ---------- Voteaza cu cod (votant, fara cont) ----------
@@ -756,17 +750,32 @@ async function renderMine() {
     navigator.clipboard.writeText(link); toast('Link copiat — trimite-l votanților');
   }));
   app.querySelectorAll('[data-del]').forEach((b) => (b.onclick = async () => {
-    if (!confirm('Sigur ștergi sesiunea?')) return;
-    await api('/api/sessions/' + b.dataset.del, { method: 'DELETE' });
-    toast('Ștearsă'); route();
+    const ok = await askConfirm({
+      title: 'Ștergi sesiunea?',
+      message: 'Sesiunea va fi ștearsă definitiv. Acțiunea nu poate fi anulată.',
+      confirmText: 'Șterge sesiunea',
+    });
+    if (!ok) return;
+    try {
+      await api('/api/sessions/' + b.dataset.del, { method: 'DELETE' });
+      toast('Ștearsă'); route();
+    } catch (err) { toast(err.message); }
   }));
 }
 
-// ---------- Istoric (toate sesiunile, extensibil) ----------
+// ---------- Istoric (doar sesiunile contului logat) ----------
 async function renderHistory() {
-  let list = [];
-  try { list = await api('/api/sessions'); } catch (e) { app.innerHTML = `<p>${esc(e.message)}</p>`; return; }
   const me = getUser();
+  if (!me) {
+    app.innerHTML = `<section class="card">
+      <h2>Istoric sesiuni</h2>
+      <p class="muted">Istoricul este vizibil doar pentru contul care a creat sesiunile. Conectează-te cu emailul folosit la creare.</p>
+      <button class="btn btn-primary" onclick="document.querySelector('#loginBtn').click()">Intră cu email</button>
+    </section>`;
+    return;
+  }
+  let list = [];
+  try { list = await api('/api/sessions/mine'); } catch (e) { app.innerHTML = `<p>${esc(e.message)}</p>`; return; }
   app.innerHTML = `<section class="history-page">
     <h2>Istoric sesiuni</h2>
     <input id="hSearch" type="text" placeholder="Caută sesiune..." />
@@ -791,7 +800,12 @@ async function renderHistory() {
   app.querySelectorAll('.trash-btn').forEach((b) => {
     b.onclick = async (e) => {
       e.stopPropagation();
-      if (!confirm(`Sigur ștergi sesiunea „${b.dataset.sname}”? Acțiunea nu poate fi anulată.`)) return;
+      const ok = await askConfirm({
+        title: 'Ștergi sesiunea?',
+        message: `„${b.dataset.sname}” va fi ștearsă definitiv. Acțiunea nu poate fi anulată.`,
+        confirmText: 'Șterge sesiunea',
+      });
+      if (!ok) return;
       try {
         await api('/api/sessions/' + b.dataset.del, { method: 'DELETE' });
         toast('Sesiune ștearsă');
@@ -930,6 +944,32 @@ function closeAccountModal() {
   m.hidden = true; m.style.display = 'none';
 }
 
+// Confirmare proprie, in stilul site-ului, pentru stergerea sesiunilor.
+// Inlocuieste dialogul basic al browserului si returneaza true/false.
+function askConfirm({ title = 'Confirmă', message = '', confirmText = 'Confirmă', cancelText = 'Anulează' } = {}) {
+  const modal = $('#confirmModal');
+  if (!modal) return Promise.resolve(false);
+  if (confirmResolve) { const previous = confirmResolve; confirmResolve = null; previous(false); }
+  confirmPreviousFocus = document.activeElement;
+  $('#confirmTitle').textContent = title;
+  $('#confirmMessage').textContent = message;
+  $('#confirmOk').textContent = confirmText;
+  $('#confirmCancel').textContent = cancelText;
+  modal.hidden = false; modal.style.display = 'flex';
+  setTimeout(() => { const c = $('#confirmCancel'); if (c) c.focus(); }, 0);
+  return new Promise((resolve) => { confirmResolve = resolve; });
+}
+function closeConfirm(result) {
+  const modal = $('#confirmModal');
+  if (!modal) return;
+  modal.hidden = true; modal.style.display = 'none';
+  const resolve = confirmResolve;
+  confirmResolve = null;
+  if (resolve) resolve(result);
+  if (confirmPreviousFocus && typeof confirmPreviousFocus.focus === 'function') confirmPreviousFocus.focus();
+  confirmPreviousFocus = null;
+}
+
 function logoutLocal() {
   localStorage.removeItem('cabanavot_token');
   localStorage.removeItem('cabanavot_user');
@@ -949,6 +989,13 @@ $('#accSwitch').onclick = () => {
 $('#closeLogin').onclick = closeLoginModal;
 // Click pe fundalul întunecat (în afara căsuței) închide modalul
 $('#loginModal').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeLoginModal(); });
+// Confirmarea de stergere: butoane, click pe fundal si tasta Escape.
+$('#confirmOk').onclick = () => closeConfirm(true);
+$('#confirmCancel').onclick = () => closeConfirm(false);
+$('#confirmModal').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeConfirm(false); });
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !$('#confirmModal').hidden) closeConfirm(false);
+});
 // Enter în oricare câmp = apasă pe „Intră”
 ['loginEmail', 'loginPass'].forEach((id) => {
   $('#' + id).addEventListener('keydown', (e) => { if (e.key === 'Enter') $('#doLogin').click(); });
