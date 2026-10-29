@@ -5,6 +5,11 @@ cu design după Manualul de identitate vizuală Cabana Scout v3.0
 (albastru `#0099FF`, bej `#D1C885`, mov închis `#000080`, font Red Hat Display,
 logo oficial extras din manual în `public/logo.png`).
 
+## Actualizări v2.6 (29 oct 2026) — API stabil după expirarea tokenului Blobs
+
+- 🔧 Conexiunea la **Netlify Blobs** este recreată la fiecare citire/scriere, nu păstrată în memoria funcției. Astfel, tokenul reîmprospătat de Netlify este folosit imediat, iar API-ul nu mai cade cu eroarea „Token expired” după ce funcția rămâne pornită mai mult timp.
+- 🚧 Mentenanța a fost pornită din nou cât timp s-a făcut această remediere, apoi oprită după verificare.
+
 ## Actualizări v2.5 (29 oct 2026) — confirmare la închiderea sesiunii
 
 - ⚠️ Când creatorul apasă **„Închide sesiunea”**, apare o fereastră de confirmare în stilul site-ului, care avertizează că sesiunea va fi închisă definitiv și **nu mai poate fi redeschisă**. Butonul de confirmare este **„Închide sesiunea”**.
