@@ -15,6 +15,12 @@ logo oficial extras din manual în `public/logo.png`).
 - 🚧 Cât timp se lucrează la site, vizitatorii văd un ecran cu fundal montan și textul mare **„Site-ul este în mentenanță”**. Comutatorul este `public/maintenance.js`: `true` cât timp se lucrează, `false` după terminare.
 - 🛠️ Pe `localhost` site-ul rămâne normal pentru testare; ecranul de mentenanță poate fi previzualizat local cu `?maintenance=1`.
 
+### Regula de lucru pentru mentenanță
+
+- La începutul fiecărei sesiuni în care se modifică site-ul: se pune `true` în `public/maintenance.js`, se crește versiunea `?v=` din `public/index.html`, se face commit + push și se așteaptă deploy-ul.
+- La finalul fiecărei sesiuni: se pune `false`, se crește din nou versiunea `?v=`, se face commit + push și se verifică faptul că site-ul normal este live.
+- Astfel, cât timp se lucrează, vizitatorii nu rămân blocați într-o versiune incompletă.
+
 ## Actualizări v2.3 (29 oct 2026) — istoric privat pe cont
 
 - 🔒 **Istoric** și **Sesiuni active** arată doar sesiunile create de contul logat. Lista este filtrată și pe server, nu doar în interfață, deci alt cont nu poate vedea sesiunile tale.
